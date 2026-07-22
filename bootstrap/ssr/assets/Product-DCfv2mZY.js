@@ -1,4 +1,4 @@
-import { t as StoreLayout_default } from "./StoreLayout-3_rn2Txl.js";
+import { t as StoreLayout_default } from "./StoreLayout-CE_7GqgF.js";
 import { Fragment, computed, createBlock, createCommentVNode, createTextVNode, createVNode, defineComponent, openBlock, ref, renderList, resolveDynamicComponent, toDisplayString, unref, useSSRContext, withCtx } from "vue";
 import { Head, Link, useForm } from "@inertiajs/vue3";
 import { ssrIncludeBooleanAttr, ssrInterpolate, ssrRenderAttr, ssrRenderClass, ssrRenderComponent, ssrRenderList, ssrRenderVNode } from "vue/server-renderer";

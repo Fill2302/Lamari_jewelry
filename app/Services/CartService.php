@@ -24,11 +24,24 @@ class CartService
         $this->session->put('cart', $c);
     }
 
+    public function update(ProductVariant $variant, int $quantity): void
+    {
+        if ($quantity <= 0) {
+            $this->remove($variant->id);
+
+            return;
+        }
+
+        $cart = $this->session->get('cart', []);
+        $cart[$variant->id] = ['quantity' => min($quantity, $variant->available_stock)];
+        $this->session->put('cart', $cart);
+    }
+
     public function items(): array
     {
         $c = $this->session->get('cart', []);
 
-        return ProductVariant::with('product')->whereIn('id', array_keys($c))->get()->map(fn ($v) => ['variant' => $v, 'quantity' => $c[$v->id]['quantity'], 'total' => $v->price_amount * $c[$v->id]['quantity']])->all();
+        return ProductVariant::with('product.media')->whereIn('id', array_keys($c))->get()->map(fn ($v) => ['variant' => $v, 'quantity' => $c[$v->id]['quantity'], 'total' => $v->price_amount * $c[$v->id]['quantity']])->all();
     }
 
     public function clear(): void

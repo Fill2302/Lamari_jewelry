@@ -15,6 +15,7 @@ Route::get('/categories/{category:slug}', [StoreController::class, 'category'])-
 Route::get('/products/{product:slug}', [StoreController::class, 'product'])->name('products.show');
 Route::get('/cart', [CartController::class, 'show'])->name('cart.show');
 Route::post('/cart/{variant}', [CartController::class, 'add'])->name('cart.add');
+Route::put('/cart/{variant}', [CartController::class, 'update'])->name('cart.update');
 Route::delete('/cart/{variant}', [CartController::class, 'remove'])->name('cart.remove');
 Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');

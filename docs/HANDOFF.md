@@ -45,6 +45,8 @@ php artisan test
 - Product media: впорядкована змішана галерея фото та MP4/WebM відео з poster,
   alt, active state і керуванням через Filament.
 - Cart: session cart для гостя.
+- Cart drawer: auto-open після додавання, quantity controls, remove, subtotal і
+  адаптивний off-canvas UX без переходу зі сторінки товару.
 - Checkout: guest order у транзакції з фіксацією merchant/legal entity.
 - Payments: `PaymentProvider`, fake adapter, підписаний idempotent callback.
 - Merchant routing: кілька ФОП/merchant accounts і JSON-правила сум.
