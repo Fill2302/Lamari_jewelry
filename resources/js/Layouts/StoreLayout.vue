@@ -1,0 +1,2 @@
+<script setup lang="ts">import {Link,usePage} from '@inertiajs/vue3';const page=usePage<any>();</script>
+<template><header><Link href="/" class="brand">LAMARI</Link><nav><Link href="/categories/rings">Каблучки</Link><Link href="/categories/earrings">Сережки</Link><Link href="/cart">Кошик ({{page.props.cartCount}})</Link></nav></header><div v-if="page.props.flash?.success" class="notice">{{page.props.flash.success}}</div><main><slot/></main><footer><b>LAMARI</b><span>Прикраси, що залишаються з тобою.</span></footer></template>
