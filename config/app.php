@@ -28,6 +28,12 @@ return [
 
     'env' => env('APP_ENV', 'production'),
 
+    'staging_protected' => (bool) env('STAGING_PROTECTED', false),
+
+    'staging_username' => env('STAGING_USERNAME'),
+
+    'staging_password' => env('STAGING_PASSWORD'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Debug Mode

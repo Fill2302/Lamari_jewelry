@@ -16,6 +16,10 @@ class SeoController extends Controller
 
     public function robots(): Response
     {
+        if (config('app.staging_protected')) {
+            return response("User-agent: *\nDisallow: /\n", 200, ['Content-Type' => 'text/plain']);
+        }
+
         return response("User-agent: *\nDisallow: /admin\nDisallow: /*?*\nSitemap: ".url('/sitemap.xml')."\n", 200, ['Content-Type' => 'text/plain']);
     }
 }
