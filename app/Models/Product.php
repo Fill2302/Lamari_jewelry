@@ -12,7 +12,7 @@ class Product extends Model
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean', 'published_at' => 'datetime'];
+        return ['is_active' => 'boolean', 'published_at' => 'datetime', 'characteristics' => 'array'];
     }
 
     public function category(): BelongsTo
@@ -23,5 +23,10 @@ class Product extends Model
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
+    }
+
+    public function media(): HasMany
+    {
+        return $this->hasMany(ProductMedia::class)->orderBy('position');
     }
 }

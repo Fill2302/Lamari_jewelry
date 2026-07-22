@@ -22,6 +22,7 @@ return new class extends Migration
         });
         Schema::create('categories', function (Blueprint $t) {
             $t->id();
+            $t->foreignId('parent_id')->nullable()->constrained('categories')->nullOnDelete();
             $t->string('name');
             $t->string('slug')->unique();
             $t->text('description')->nullable();
@@ -37,12 +38,27 @@ return new class extends Migration
             $t->string('slug')->unique();
             $t->text('description');
             $t->string('material')->nullable();
+            $t->json('characteristics')->nullable();
+            $t->text('packaging_text')->nullable();
+            $t->text('care_text')->nullable();
             $t->string('image_url')->nullable();
             $t->string('seo_title')->nullable();
             $t->string('seo_description')->nullable();
             $t->boolean('is_active')->default(true);
             $t->timestamp('published_at')->nullable();
             $t->timestamps();
+        });
+        Schema::create('product_media', function (Blueprint $t) {
+            $t->id();
+            $t->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $t->string('type');
+            $t->string('url');
+            $t->string('poster_url')->nullable();
+            $t->string('alt')->nullable();
+            $t->unsignedInteger('position')->default(0);
+            $t->boolean('is_active')->default(true);
+            $t->timestamps();
+            $t->index(['product_id', 'position']);
         });
         Schema::create('product_variants', function (Blueprint $t) {
             $t->id();
@@ -114,7 +130,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        foreach (['webhook_events', 'payments', 'order_items', 'orders', 'product_variants', 'products', 'categories', 'merchant_accounts', 'legal_entities'] as $table) {
+        foreach (['webhook_events', 'payments', 'order_items', 'orders', 'product_variants', 'product_media', 'products', 'categories', 'merchant_accounts', 'legal_entities'] as $table) {
             Schema::dropIfExists($table);
         }
     }

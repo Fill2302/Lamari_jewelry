@@ -28,8 +28,16 @@ class ProductForm
                     ->required()
                     ->columnSpanFull(),
                 TextInput::make('material'),
-                FileUpload::make('image_url')
-                    ->image(),
+                Textarea::make('packaging_text')->columnSpanFull(),
+                Textarea::make('care_text')->columnSpanFull(),
+                Repeater::make('media')->relationship()->schema([
+                    Select::make('type')->options(['image' => 'Фото', 'video' => 'Відео'])->required(),
+                    FileUpload::make('url')->label('Фото або відео')->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm'])->directory('products')->visibility('public')->required(),
+                    FileUpload::make('poster_url')->label('Poster відео')->image()->directory('products/posters')->visibility('public'),
+                    TextInput::make('alt')->label('Alt / опис'),
+                    TextInput::make('position')->numeric()->default(0),
+                    Toggle::make('is_active')->default(true),
+                ])->orderColumn('position')->columns(3)->columnSpanFull(),
                 TextInput::make('seo_title'),
                 TextInput::make('seo_description'),
                 Repeater::make('variants')->relationship()->schema([

@@ -13,8 +13,9 @@ class StorefrontTest extends TestCase
     {
         $this->seed();
         $this->get('/')->assertOk()->assertSee('Home', false);
-        $this->get('/categories/rings')->assertOk();
-        $this->get('/products/aurelia-ring')->assertOk();
+        $this->get('/categories/necklaces')->assertOk();
+        $this->get('/products/crystal-pearl-necklace')->assertOk()->assertSee('video', false);
+        $this->assertDatabaseHas('product_media', ['type' => 'video', 'is_active' => true]);
         $this->get('/sitemap.xml')->assertOk()->assertHeader('Content-Type', 'application/xml');
         $this->get('/robots.txt')->assertOk()->assertSee('Disallow: /*?*');
     }
