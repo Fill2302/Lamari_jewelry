@@ -1,4 +1,4 @@
-import { t as StoreLayout_default } from "./StoreLayout-CE_7GqgF.js";
+import { t as StoreLayout_default } from "./StoreLayout-DpbhNzPq.js";
 import { createTextVNode, createVNode, defineComponent, toDisplayString, unref, useSSRContext, withCtx } from "vue";
 import { Head, Link } from "@inertiajs/vue3";
 import { ssrInterpolate, ssrRenderComponent } from "vue/server-renderer";

@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
             'characteristics' => ['Матеріал фурнітури' => 'Латунь', 'Покриття' => 'Позолота 18к', 'Тип застібки' => 'Тогл з фіанітами'],
             'packaging_text' => 'Безкоштовно пакуємо у подарункову брендовану коробочку — для отримання, дарування та зберігання прикрас.',
             'care_text' => 'Прикраси з латуні рекомендуємо знімати перед душем, морем або басейном та зберігати в сухому місці.',
-            'image_url' => 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1400',
+            'image_url' => 'products/crystal-pearl-necklace-1.webp',
             'seo_title' => 'Кольє з кришталю та перлин — Lamari Jewelry',
             'seo_description' => 'Ніжне авторське кольє Lamari з натуральних перлин та прозорого кришталю.',
             'published_at' => now(),
@@ -64,9 +64,9 @@ class DatabaseSeeder extends Seeder
             $product->variants()->create(['sku' => 'K423-'.str_replace(' см', '', $length), 'name' => $length, 'price_amount' => 199000, 'stock_on_hand' => 8]);
         }
         foreach ([
-            ['image', 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1400', null, 'Кольє з кришталю та перлин'],
-            ['image', 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=1400', null, 'Деталі кольє Lamari'],
-            ['video', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1400', 'Відео товару — демонстраційний файл'],
+            ['image', 'products/crystal-pearl-necklace-1.webp', null, 'Кольє з кришталю та перлин на моделі'],
+            ['image', 'products/crystal-pearl-necklace-2.webp', null, 'Деталі кольє з кришталю та перлин'],
+            ['image', 'products/crystal-pearl-necklace-3.webp', null, 'Кольє з кришталю та перлин у комплекті з прикрасами'],
         ] as $position => [$type, $url, $poster, $alt]) {
             $product->media()->create(['type' => $type, 'url' => $url, 'poster_url' => $poster, 'alt' => $alt, 'position' => $position]);
         }

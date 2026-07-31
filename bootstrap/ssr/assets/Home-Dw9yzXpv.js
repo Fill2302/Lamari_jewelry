@@ -1,7 +1,7 @@
-import { t as StoreLayout_default } from "./StoreLayout-CE_7GqgF.js";
+import { t as StoreLayout_default } from "./StoreLayout-DpbhNzPq.js";
 import { Fragment, createBlock, createTextVNode, createVNode, defineComponent, openBlock, renderList, toDisplayString, unref, useSSRContext, withCtx } from "vue";
 import { Head, Link } from "@inertiajs/vue3";
-import { ssrInterpolate, ssrRenderComponent, ssrRenderList } from "vue/server-renderer";
+import { ssrInterpolate, ssrRenderAttr, ssrRenderComponent, ssrRenderList } from "vue/server-renderer";
 //#region resources/js/Pages/Home.vue?vue&type=script&setup=true&lang.ts
 var Home_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
 	__name: "Home",
@@ -34,18 +34,25 @@ var Home_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCompo
 			_push(ssrRenderComponent(StoreLayout_default, null, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
-						_push(`<section class="hero lamari-hero"${_scopeId}><p class="eyebrow"${_scopeId}>LAMARI JEWELRY</p><h1${_scopeId}>Прикраси,<br${_scopeId}><i${_scopeId}>створені відчувати.</i></h1><p${_scopeId}>Кришталь, перлини й натуральне каміння у прикрасах ручної роботи.</p>`);
 						_push(ssrRenderComponent(unref(Link), {
-							href: "/categories/necklaces",
-							class: "button"
+							href: "/catalog",
+							class: "home-campaign",
+							"aria-label": "Перейти до каталогу всіх товарів"
 						}, {
 							default: withCtx((_, _push, _parent, _scopeId) => {
-								if (_push) _push(`Перейти до каталогу`);
-								else return [createTextVNode("Перейти до каталогу")];
+								if (_push) _push(`<picture${_scopeId}><source media="(max-width: 600px)" type="image/webp"${ssrRenderAttr("srcset", "/images/home/summer-collection-mobile-clean-v3.webp")}${_scopeId}><img${ssrRenderAttr("src", "/images/home/summer-collection-desktop.jpg")} alt="Summer Collection Lamari"${_scopeId}></picture><span class="mobile-campaign-copy"${_scopeId}><strong${_scopeId}>SUMMER COLLECTION</strong><span${_scopeId}>Каталог</span></span>`);
+								else return [createVNode("picture", null, [createVNode("source", {
+									media: "(max-width: 600px)",
+									type: "image/webp",
+									srcset: "/images/home/summer-collection-mobile-clean-v3.webp"
+								}), createVNode("img", {
+									src: "/images/home/summer-collection-desktop.jpg",
+									alt: "Summer Collection Lamari"
+								})]), createVNode("span", { class: "mobile-campaign-copy" }, [createVNode("strong", null, "SUMMER COLLECTION"), createVNode("span", null, "Каталог")])];
 							}),
 							_: 1
 						}, _parent, _scopeId));
-						_push(`</section><section class="section"${_scopeId}><div class="section-title"${_scopeId}><div${_scopeId}><p class="eyebrow"${_scopeId}>КАТАЛОГ</p><h2${_scopeId}>Знайди свою прикрасу</h2></div></div><div class="department-grid"${_scopeId}><!--[-->`);
+						_push(`<section class="section"${_scopeId}><div class="section-title"${_scopeId}><div${_scopeId}><p class="eyebrow"${_scopeId}>КАТАЛОГ</p><h2${_scopeId}>Знайди свою прикрасу</h2></div></div><div class="department-grid"${_scopeId}><!--[-->`);
 						ssrRenderList(__props.categories.filter((c) => !["sale", "summer"].includes(c.slug)), (category) => {
 							_push(ssrRenderComponent(unref(Link), {
 								key: category.id,
@@ -61,22 +68,21 @@ var Home_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCompo
 						});
 						_push(`<!--]--></div></section><section class="brand-story"${_scopeId}><p class="eyebrow"${_scopeId}>MADE BY HAND</p><h2${_scopeId}>Особливі деталі.<br${_scopeId}>Твоя особиста історія.</h2><p${_scopeId}>Кожне замовлення безкоштовно пакуємо у брендовану подарункову коробочку.</p></section>`);
 					} else return [
-						createVNode("section", { class: "hero lamari-hero" }, [
-							createVNode("p", { class: "eyebrow" }, "LAMARI JEWELRY"),
-							createVNode("h1", null, [
-								createTextVNode("Прикраси,"),
-								createVNode("br"),
-								createVNode("i", null, "створені відчувати.")
-							]),
-							createVNode("p", null, "Кришталь, перлини й натуральне каміння у прикрасах ручної роботи."),
-							createVNode(unref(Link), {
-								href: "/categories/necklaces",
-								class: "button"
-							}, {
-								default: withCtx(() => [createTextVNode("Перейти до каталогу")]),
-								_: 1
-							})
-						]),
+						createVNode(unref(Link), {
+							href: "/catalog",
+							class: "home-campaign",
+							"aria-label": "Перейти до каталогу всіх товарів"
+						}, {
+							default: withCtx(() => [createVNode("picture", null, [createVNode("source", {
+								media: "(max-width: 600px)",
+								type: "image/webp",
+								srcset: "/images/home/summer-collection-mobile-clean-v3.webp"
+							}), createVNode("img", {
+								src: "/images/home/summer-collection-desktop.jpg",
+								alt: "Summer Collection Lamari"
+							})]), createVNode("span", { class: "mobile-campaign-copy" }, [createVNode("strong", null, "SUMMER COLLECTION"), createVNode("span", null, "Каталог")])]),
+							_: 1
+						}),
 						createVNode("section", { class: "section" }, [createVNode("div", { class: "section-title" }, [createVNode("div", null, [createVNode("p", { class: "eyebrow" }, "КАТАЛОГ"), createVNode("h2", null, "Знайди свою прикрасу")])]), createVNode("div", { class: "department-grid" }, [(openBlock(true), createBlock(Fragment, null, renderList(__props.categories.filter((c) => !["sale", "summer"].includes(c.slug)), (category) => {
 							return openBlock(), createBlock(unref(Link), {
 								key: category.id,

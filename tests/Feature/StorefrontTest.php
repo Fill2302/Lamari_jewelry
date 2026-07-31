@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -14,9 +15,58 @@ class StorefrontTest extends TestCase
         $this->seed();
         $this->get('/')->assertOk()->assertSee('Home', false);
         $this->get('/categories/necklaces')->assertOk();
-        $this->get('/products/crystal-pearl-necklace')->assertOk()->assertSee('video', false);
-        $this->assertDatabaseHas('product_media', ['type' => 'video', 'is_active' => true]);
+        $this->get('/products/crystal-pearl-necklace')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('product.slug', 'crystal-pearl-necklace'));
+        $this->assertDatabaseHas('product_media', ['type' => 'image', 'is_active' => true]);
         $this->get('/sitemap.xml')->assertOk()->assertHeader('Content-Type', 'application/xml');
         $this->get('/robots.txt')->assertOk()->assertSee('Disallow: /*?*');
+    }
+
+    public function test_products_follow_manual_catalog_and_category_positions(): void
+    {
+        $this->seed();
+
+        $first = Product::with('category')->firstOrFail();
+        $second = $first->replicate();
+        $second->slug = "{$first->slug}-second";
+        $second->save();
+
+        $first->update(['catalog_position' => 2, 'category_position' => 1]);
+        $second->update(['catalog_position' => 1, 'category_position' => 2]);
+
+        $this->get('/catalog')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('products.0.id', $second->id)
+                ->where('catalogControls.sort', 'manual'));
+
+        $this->get("/categories/{$first->category->slug}")
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('products.0.id', $first->id)
+                ->where('catalogControls.sort', 'manual'));
+    }
+
+    public function test_catalog_search_finds_products_by_name_and_variant_sku(): void
+    {
+        $this->seed();
+
+        $product = Product::with('variants')->firstOrFail();
+        $nameFragment = mb_strtolower(mb_substr($product->name, 0, 5));
+        $skuFragment = strtolower(substr($product->variants->firstOrFail()->sku, 0, 5));
+
+        $this->get('/catalog?q='.urlencode($nameFragment))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('products.0.id', $product->id)
+                ->where('searchQuery', $nameFragment));
+
+        $this->get('/catalog?q='.urlencode($skuFragment))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('products.0.id', $product->id)
+                ->where('searchQuery', $skuFragment));
     }
 }

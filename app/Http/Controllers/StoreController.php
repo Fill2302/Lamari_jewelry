@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attribute;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductVariant;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,15 +18,211 @@ class StoreController extends Controller
         return Inertia::render('Home', ['categories' => Category::whereNull('parent_id')->where('is_active', true)->with(['products' => fn ($q) => $q->where('is_active', true)->with('variants')->limit(4), 'children'])->get()]);
     }
 
-    public function category(Category $category): Response
+    public function catalog(Request $request): Response
     {
-        $category->load('children');
+        $selectedFilters = $this->selectedFilters($request);
+        $baseQuery = Product::where('is_active', true);
+        $searchQuery = mb_substr(trim((string) $request->input('q')), 0, 100);
+
+        if ($searchQuery !== '') {
+            $matchingProductIds = Product::where('is_active', true)
+                ->with('variants:id,product_id,sku')
+                ->get(['id', 'name'])
+                ->filter(fn (Product $product): bool => mb_stripos($product->name, $searchQuery) !== false
+                    || $product->variants->contains(fn ($variant): bool => mb_stripos($variant->sku, $searchQuery) !== false))
+                ->pluck('id');
+
+            $baseQuery->whereIn('id', $matchingProductIds);
+        }
+
+        $priceBounds = $this->priceBounds(clone $baseQuery);
+
+        $products = $this->applyCatalogFilters(clone $baseQuery, $request, $selectedFilters, 'catalog_position')
+            ->with('variants', 'media', 'attributeValues.attribute')
+            ->paginate(24)
+            ->withQueryString();
+
+        $filters = Attribute::where('is_active', true)
+            ->where('is_filterable', true)
+            ->with(['values' => fn ($query) => $query
+                ->where('is_active', true)
+                ->whereHas('products', fn ($products) => $products->where('is_active', true))])
+            ->orderBy('position')
+            ->get()
+            ->filter(fn ($attribute) => $attribute->values->isNotEmpty())
+            ->values();
+
+        return Inertia::render('Category', [
+            'category' => [
+                'name' => 'Усі прикраси',
+                'slug' => 'catalog',
+                'description' => 'Повний каталог прикрас Lamari.',
+                'children' => [],
+            ],
+            'categoryNavigation' => [
+                'root' => null,
+                'allHref' => '/catalog',
+                'items' => Category::whereNull('parent_id')
+                    ->where('is_active', true)
+                    ->orderBy('position')
+                    ->get(['id', 'name', 'slug']),
+            ],
+            'products' => $products->items(),
+            'productTotal' => $products->total(),
+            'pagination' => [
+                'currentPage' => $products->currentPage(),
+                'lastPage' => $products->lastPage(),
+                'prevUrl' => $products->previousPageUrl(),
+                'nextUrl' => $products->nextPageUrl(),
+                'pageUrls' => $products->getUrlRange(1, $products->lastPage()),
+            ],
+            'filters' => $filters,
+            'selectedFilters' => $selectedFilters,
+            'catalogControls' => $this->catalogControls($request, $priceBounds),
+            'catalogUrl' => '/catalog',
+            'searchQuery' => $searchQuery,
+        ]);
+    }
+
+    public function category(Request $request, Category $category): Response
+    {
+        $category->load(['children' => fn ($query) => $query
+            ->where('is_active', true)
+            ->orderBy('position'), 'parent.children' => fn ($query) => $query
+            ->where('is_active', true)
+            ->orderBy('position')]);
         $categoryIds = $category->children->pluck('id')->prepend($category->id);
+        $navigationRoot = $category->parent ?: $category;
+        $navigationItems = $category->parent
+            ? $category->parent->children
+            : $category->children;
+        $selectedFilters = $this->selectedFilters($request);
+        $baseQuery = Product::where('is_active', true);
+        if ($category->slug === 'sale') {
+            $baseQuery->whereNotNull('compare_at_price_amount');
+        } else {
+            $baseQuery->whereIn('category_id', $categoryIds);
+        }
+        $priceBounds = $this->priceBounds(clone $baseQuery);
+
+        $products = $this->applyCatalogFilters(clone $baseQuery, $request, $selectedFilters, 'category_position')
+            ->with('variants', 'media', 'attributeValues.attribute')
+            ->paginate(24)
+            ->withQueryString();
+
+        $filters = Attribute::where('is_active', true)
+            ->where('is_filterable', true)
+            ->with(['values' => fn ($query) => $query
+                ->where('is_active', true)
+                ->whereHas('products', function ($products) use ($category, $categoryIds): void {
+                    $products->where('is_active', true);
+                    if ($category->slug === 'sale') {
+                        $products->whereNotNull('compare_at_price_amount');
+                    } else {
+                        $products->whereIn('category_id', $categoryIds);
+                    }
+                })])
+            ->orderBy('position')
+            ->get()
+            ->filter(fn ($attribute) => $attribute->values->isNotEmpty())
+            ->values();
 
         return Inertia::render('Category', [
             'category' => $category,
-            'products' => Product::whereIn('category_id', $categoryIds)->where('is_active', true)->with('variants', 'media')->get(),
+            'categoryNavigation' => [
+                'root' => $navigationRoot->only(['id', 'name', 'slug']),
+                'allHref' => '/catalog',
+                'items' => $navigationItems,
+            ],
+            'products' => $products->items(),
+            'productTotal' => $products->total(),
+            'pagination' => [
+                'currentPage' => $products->currentPage(),
+                'lastPage' => $products->lastPage(),
+                'prevUrl' => $products->previousPageUrl(),
+                'nextUrl' => $products->nextPageUrl(),
+                'pageUrls' => $products->getUrlRange(1, $products->lastPage()),
+            ],
+            'filters' => $filters,
+            'selectedFilters' => $selectedFilters,
+            'catalogControls' => $this->catalogControls($request, $priceBounds),
         ]);
+    }
+
+    private function selectedFilters(Request $request): array
+    {
+        return collect($request->input('filters', []))
+            ->map(fn ($values) => array_values(array_filter((array) $values)))
+            ->filter()
+            ->all();
+    }
+
+    private function applyCatalogFilters(
+        Builder $query,
+        Request $request,
+        array $selectedFilters,
+        string $manualPositionColumn,
+    ): Builder {
+        foreach ($selectedFilters as $attributeSlug => $valueSlugs) {
+            $query->whereHas('attributeValues', fn ($values) => $values
+                ->whereIn('attribute_values.slug', $valueSlugs)
+                ->whereHas('attribute', fn ($attribute) => $attribute->where('slug', $attributeSlug)));
+        }
+
+        $priceFrom = max(0, (int) $request->input('price_from', 0)) * 100;
+        $priceTo = max(0, (int) $request->input('price_to', 0)) * 100;
+        if ($priceFrom) {
+            $query->whereHas('variants', fn ($variants) => $variants->where('price_amount', '>=', $priceFrom));
+        }
+        if ($priceTo) {
+            $query->whereHas('variants', fn ($variants) => $variants->where('price_amount', '<=', $priceTo));
+        }
+
+        if ($request->input('availability') === 'in_stock') {
+            $query->whereHas('variants', fn ($variants) => $variants->whereColumn('stock_on_hand', '>', 'stock_reserved'));
+        } elseif ($request->input('availability') === 'preorder') {
+            $query->whereDoesntHave('variants', fn ($variants) => $variants->whereColumn('stock_on_hand', '>', 'stock_reserved'));
+        }
+
+        return match ($request->input('sort')) {
+            'price_asc' => $query->orderBy(
+                ProductVariant::selectRaw('MIN(price_amount)')
+                    ->whereColumn('product_id', 'products.id')
+            ),
+            'price_desc' => $query->orderByDesc(
+                ProductVariant::selectRaw('MAX(price_amount)')
+                    ->whereColumn('product_id', 'products.id')
+            ),
+            'newest' => $query->latest('products.id'),
+            default => $query
+                ->orderBy("products.{$manualPositionColumn}")
+                ->orderByDesc('products.id'),
+        };
+    }
+
+    private function priceBounds(Builder $query): array
+    {
+        $prices = ProductVariant::query()
+            ->whereHas('product', fn ($products) => $products->whereIn('id', $query->select('id')))
+            ->selectRaw('MIN(price_amount) as min_price, MAX(price_amount) as max_price')
+            ->first();
+
+        return [
+            'min' => (int) floor(($prices->min_price ?? 0) / 100),
+            'max' => (int) ceil(($prices->max_price ?? 0) / 100),
+        ];
+    }
+
+    private function catalogControls(Request $request, array $priceBounds): array
+    {
+        return [
+            'priceMin' => $priceBounds['min'],
+            'priceMax' => $priceBounds['max'],
+            'priceFrom' => (int) $request->input('price_from', $priceBounds['min']),
+            'priceTo' => (int) $request->input('price_to', $priceBounds['max']),
+            'availability' => $request->input('availability'),
+            'sort' => $request->input('sort', 'manual'),
+        ];
     }
 
     public function product(Product $product): Response

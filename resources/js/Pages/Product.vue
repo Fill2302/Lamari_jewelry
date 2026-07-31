@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import StoreLayout from '../Layouts/StoreLayout.vue';
 const p = defineProps<{ product: any }>();
@@ -8,7 +8,147 @@ const form = useForm({ quantity: 1 });
 const add = () => form.post(`/cart/${selected.value}`, { preserveScroll: true });
 const asset = (url?: string) => !url ? '' : url.startsWith('http') ? url : `/storage/${url}`;
 const media = computed(() => p.product.media?.length ? p.product.media : [{ type: 'image', url: p.product.image_url, alt: p.product.name }]);
+const carouselMedia = computed(() => media.value.length > 1
+  ? [
+      { ...media.value[media.value.length - 1], cloneKey: 'last-clone' },
+      ...media.value.map((item: any, index: number) => ({ ...item, cloneKey: `media-${item.id || item.url}-${index}` })),
+      { ...media.value[0], cloneKey: 'first-clone' },
+    ]
+  : media.value.map((item: any) => ({ ...item, cloneKey: `media-${item.id || item.url}` })));
+const gallery = ref<HTMLElement | null>(null);
+const buyButton = ref<HTMLElement | null>(null);
+const showStickyBuy = ref(false);
+const isFavorite = ref(false);
+const toggleFavorite = () => {
+  const favorites: number[] = JSON.parse(localStorage.getItem('lamari-favorites') || '[]');
+  const next = favorites.includes(p.product.id)
+    ? favorites.filter(id => id !== p.product.id)
+    : [...favorites, p.product.id];
+  localStorage.setItem('lamari-favorites', JSON.stringify(next));
+  isFavorite.value = next.includes(p.product.id);
+  window.dispatchEvent(new Event('lamari-favorites'));
+};
+const activeMedia = ref(0);
+const zoomKey = ref<string | null>(null);
+const zoomScale = ref(1);
+const zoomX = ref(0);
+const zoomY = ref(0);
+let pinchStartDistance = 0;
+let pinchStartScale = 1;
+let panStartX = 0;
+let panStartY = 0;
+let panOriginX = 0;
+let panOriginY = 0;
+const touchDistance = (touches: TouchList) => Math.hypot(
+  touches[0].clientX - touches[1].clientX,
+  touches[0].clientY - touches[1].clientY,
+);
+const resetZoom = () => {
+  zoomKey.value = null;
+  zoomScale.value = 1;
+  zoomX.value = 0;
+  zoomY.value = 0;
+  pinchStartDistance = 0;
+};
+const imageTransform = (key: string) => key === zoomKey.value
+  ? { transform: `translate3d(${zoomX.value}px, ${zoomY.value}px, 0) scale(${zoomScale.value})` }
+  : undefined;
+const startImageGesture = (event: TouchEvent, key: string) => {
+  if (event.touches.length === 2) {
+    zoomKey.value = key;
+    pinchStartDistance = touchDistance(event.touches);
+    pinchStartScale = zoomScale.value;
+  } else if (event.touches.length === 1 && zoomKey.value === key && zoomScale.value > 1) {
+    panStartX = event.touches[0].clientX;
+    panStartY = event.touches[0].clientY;
+    panOriginX = zoomX.value;
+    panOriginY = zoomY.value;
+  }
+};
+const moveImageGesture = (event: TouchEvent, key: string) => {
+  if (zoomKey.value !== key) return;
+
+  if (event.touches.length === 2) {
+    event.preventDefault();
+    zoomScale.value = Math.min(4, Math.max(1, pinchStartScale * touchDistance(event.touches) / pinchStartDistance));
+    if (zoomScale.value === 1) {
+      zoomX.value = 0;
+      zoomY.value = 0;
+    }
+  } else if (event.touches.length === 1 && zoomScale.value > 1) {
+    event.preventDefault();
+    const limitX = gallery.value?.clientWidth ? gallery.value.clientWidth * (zoomScale.value - 1) / 2 : 0;
+    const limitY = gallery.value?.clientHeight ? gallery.value.clientHeight * (zoomScale.value - 1) / 2 : 0;
+    zoomX.value = Math.min(limitX, Math.max(-limitX, panOriginX + event.touches[0].clientX - panStartX));
+    zoomY.value = Math.min(limitY, Math.max(-limitY, panOriginY + event.touches[0].clientY - panStartY));
+  }
+};
+const endImageGesture = (event: TouchEvent) => {
+  if (event.touches.length === 0 && zoomScale.value <= 1.02) resetZoom();
+  if (event.touches.length === 1 && zoomScale.value > 1) {
+    panStartX = event.touches[0].clientX;
+    panStartY = event.touches[0].clientY;
+    panOriginX = zoomX.value;
+    panOriginY = zoomY.value;
+  }
+};
+let scrollTimer: ReturnType<typeof setTimeout> | undefined;
+const scrollToPhysical = (index: number, behavior: ScrollBehavior = 'auto') => {
+  const element = gallery.value;
+  if (!element) return;
+  element.scrollTo({ left: index * element.clientWidth, behavior });
+};
+const goToMedia = (index: number) => {
+  resetZoom();
+  const count = media.value.length;
+  if (count < 2) return;
+  if (index < 0) return scrollToPhysical(0, 'smooth');
+  if (index >= count) return scrollToPhysical(count + 1, 'smooth');
+  scrollToPhysical(index + 1, 'smooth');
+};
+const updateActiveMedia = () => {
+  const element = gallery.value;
+  if (!element || media.value.length < 2) return;
+  const physicalIndex = Math.round(element.scrollLeft / element.clientWidth);
+  if (physicalIndex !== activeMedia.value + 1 && zoomScale.value === 1) resetZoom();
+  activeMedia.value = physicalIndex === 0
+    ? media.value.length - 1
+    : physicalIndex === media.value.length + 1 ? 0 : physicalIndex - 1;
+  clearTimeout(scrollTimer);
+  scrollTimer = setTimeout(() => {
+    const settledIndex = Math.round(element.scrollLeft / element.clientWidth);
+    if (settledIndex === 0) scrollToPhysical(media.value.length);
+    if (settledIndex === media.value.length + 1) scrollToPhysical(1);
+  }, 80);
+};
+const updateStickyBuy = () => {
+  showStickyBuy.value = Boolean(buyButton.value && buyButton.value.getBoundingClientRect().bottom < 0);
+};
+onMounted(() => {
+  try {
+    isFavorite.value = JSON.parse(localStorage.getItem('lamari-favorites') || '[]').includes(p.product.id);
+  } catch {
+    isFavorite.value = false;
+  }
+  nextTick(() => {
+    if (media.value.length > 1) scrollToPhysical(1);
+    updateStickyBuy();
+  });
+  window.addEventListener('scroll', updateStickyBuy, { passive: true });
+  window.addEventListener('resize', updateStickyBuy);
+});
+onUnmounted(() => {
+  window.removeEventListener('scroll', updateStickyBuy);
+  window.removeEventListener('resize', updateStickyBuy);
+});
 const selectedVariant = computed(() => p.product.variants.find((v: any) => v.id === selected.value));
+const compareAtPrice = computed(() => Number(p.product.compare_at_price_amount || 0));
+const currentPrice = computed(() => Number(selectedVariant.value?.price_amount || 0));
+const discountLabel = computed(() => {
+  if (!compareAtPrice.value || !currentPrice.value || compareAtPrice.value <= currentPrice.value) return '';
+  const catalogLabel = p.product.catalog_badges?.find((badge: any) => badge.type === 'sale')?.label;
+  return catalogLabel || `-${Math.round((1 - currentPrice.value / compareAtPrice.value) * 100)}%`;
+});
 const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.product.name, image: media.value.filter((m:any)=>m.type==='image').map((m:any)=>asset(m.url)), description: p.product.description, sku: p.product.variants[0]?.sku, offers: { '@type': 'Offer', priceCurrency: 'UAH', price: p.product.variants[0]?.price_amount / 100, availability: 'https://schema.org/InStock' } };
 </script>
 
@@ -23,29 +163,74 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
   <StoreLayout>
     <div class="breadcrumbs"><Link href="/">Головна</Link> / <Link :href="`/categories/${product.category.parent?.slug || product.category.slug}`">{{ product.category.parent?.name || product.category.name }}</Link> / {{ product.name }}</div>
     <section class="product-lace">
-      <div class="media-grid">
-        <figure v-for="item in media" :key="item.id || item.url" :class="{ video: item.type === 'video' }">
-          <img v-if="item.type === 'image'" :src="asset(item.url)" :alt="item.alt || product.name" loading="lazy" />
-          <video v-else :src="asset(item.url)" :poster="asset(item.poster_url)" controls muted playsinline preload="metadata">Ваш браузер не підтримує відео.</video>
-          <span v-if="item.type === 'video'" class="media-label">Відео</span>
+      <div class="product-gallery">
+        <span v-if="discountLabel" class="product-sale-badge">{{ discountLabel }}</span>
+        <div ref="gallery" class="media-carousel" :class="{ 'is-image-zoomed': zoomScale > 1 }" @scroll.passive="updateActiveMedia">
+        <figure
+          v-for="item in carouselMedia"
+          :key="item.cloneKey"
+          @touchstart="item.type === 'image' && startImageGesture($event, item.cloneKey)"
+          @touchmove="item.type === 'image' && moveImageGesture($event, item.cloneKey)"
+          @touchend="item.type === 'image' && endImageGesture($event)"
+          @touchcancel="resetZoom"
+        >
+          <img
+            v-if="item.type === 'image'"
+            :src="asset(item.url)"
+            :alt="item.alt || product.name"
+            :style="imageTransform(item.cloneKey)"
+            loading="lazy"
+          />
+          <video
+            v-else
+            :src="asset(item.url)"
+            :poster="asset(item.poster_url)"
+            muted
+            autoplay
+            loop
+            playsinline
+            disablepictureinpicture
+            disableremoteplayback
+            tabindex="-1"
+            preload="auto"
+            @contextmenu.prevent
+          >Ваш браузер не підтримує відео.</video>
         </figure>
+        </div>
+        <template v-if="media.length > 1">
+          <button class="gallery-arrow gallery-prev" aria-label="Попереднє медіа" @click="goToMedia(activeMedia - 1)">←</button>
+          <button class="gallery-arrow gallery-next" aria-label="Наступне медіа" @click="goToMedia(activeMedia + 1)">→</button>
+          <div class="gallery-dots"><button v-for="(_,index) in media" :key="index" :class="{active:activeMedia===index}" :aria-label="`Медіа ${index+1}`" @click="goToMedia(index)"></button></div>
+        </template>
       </div>
       <aside class="buy-panel">
-        <p class="eyebrow">{{ product.category.name }}</p>
+        <button class="product-favorite" :class="{ active: isFavorite }" :aria-label="isFavorite ? 'Видалити з обраного' : 'Додати в обране'" @click="toggleFavorite">
+          <svg viewBox="0 0 24 24"><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>
+        </button>
         <h1>{{ product.name }}</h1>
         <p class="sku">Артикул {{ selectedVariant?.sku }} · <span class="in-stock">В наявності</span></p>
-        <p class="price">{{ (selectedVariant?.price_amount / 100).toLocaleString('uk-UA') }} ₴</p>
+        <p class="price" :class="{ 'product-sale-price': compareAtPrice }">
+          <del v-if="compareAtPrice">{{ (compareAtPrice / 100).toLocaleString('uk-UA') }} ₴</del>
+          <span>{{ (currentPrice / 100).toLocaleString('uk-UA') }} ₴</span>
+        </p>
         <label>Оберіть розмір
           <div class="variant-pills"><button v-for="v in product.variants" :key="v.id" :class="{ active: selected === v.id }" @click="selected = v.id">{{ v.name }}</button></div>
         </label>
-        <button class="button buy" @click="add" :disabled="form.processing || !selected">Додати в кошик</button>
-        <div class="product-benefits"><span>Безкоштовне брендоване пакування</span><span>Відправлення 1–3 робочі дні</span></div>
+        <button ref="buyButton" class="button buy" @click="add" :disabled="form.processing || !selected">Додати в кошик</button>
+        <div class="product-benefits"><span>Безкоштовне брендоване пакування</span><span>Відправлення 1–2 робочі дні</span></div>
         <details open><summary>Характеристики</summary><dl><template v-for="(value,key) in product.characteristics"><dt>{{ key }}</dt><dd>{{ value }}</dd></template><dt>Матеріал</dt><dd>{{ product.material }}</dd></dl></details>
         <details><summary>Опис товару</summary><p>{{ product.description }}</p></details>
         <details><summary>Упаковка</summary><p>{{ product.packaging_text }}</p></details>
         <details><summary>Догляд</summary><p>{{ product.care_text }}</p></details>
-        <details><summary>Доставка та оплата</summary><p>Доставка Україною та за кордон. Точний спосіб і вартість будуть доступні під час оформлення.</p></details>
+        <details><summary>Доставка та оплата</summary><p>{{ product.delivery_payment_text || 'Доставка Україною та за кордон. Точний спосіб і вартість будуть доступні під час оформлення.' }}</p></details>
       </aside>
     </section>
+    <div v-if="showStickyBuy" class="sticky-buy-bar">
+      <strong class="sticky-product-price">
+        <del v-if="compareAtPrice">{{ (compareAtPrice / 100).toLocaleString('uk-UA') }} ₴</del>
+        <span>{{ (currentPrice / 100).toLocaleString('uk-UA') }} ₴</span>
+      </strong>
+      <button class="button" @click="add" :disabled="form.processing || !selected">Додати в кошик</button>
+    </div>
   </StoreLayout>
 </template>

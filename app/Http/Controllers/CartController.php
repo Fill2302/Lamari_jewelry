@@ -34,6 +34,15 @@ class CartController extends Controller
         return back()->with('cartOpen', true);
     }
 
+    public function changeVariant(Request $request, ProductVariant $variant, CartService $cart): RedirectResponse
+    {
+        $data = $request->validate(['variant_id' => 'required|integer|exists:product_variants,id']);
+        $replacement = ProductVariant::findOrFail($data['variant_id']);
+        $cart->changeVariant($variant, $replacement);
+
+        return back();
+    }
+
     public function remove(ProductVariant $variant, CartService $cart): RedirectResponse
     {
         $cart->remove($variant->id);

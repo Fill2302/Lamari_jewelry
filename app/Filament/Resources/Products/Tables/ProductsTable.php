@@ -8,6 +8,8 @@ use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\TextInputColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class ProductsTable
@@ -17,9 +19,22 @@ class ProductsTable
         return $table
             ->columns([
                 TextColumn::make('category.name')
-                    ->searchable(),
+                    ->label('Категорія')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('name')
+                    ->label('Товар')
                     ->searchable(),
+                TextInputColumn::make('catalog_position')
+                    ->label('Місце в каталозі')
+                    ->type('number')
+                    ->rules(['required', 'integer', 'min:1'])
+                    ->sortable(),
+                TextInputColumn::make('category_position')
+                    ->label('Місце в категорії')
+                    ->type('number')
+                    ->rules(['required', 'integer', 'min:1'])
+                    ->sortable(),
                 TextColumn::make('slug')
                     ->searchable(),
                 TextColumn::make('material')
@@ -43,8 +58,13 @@ class ProductsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('catalog_position')
             ->filters([
-                //
+                SelectFilter::make('category_id')
+                    ->label('Категорія / підкатегорія')
+                    ->relationship('category', 'name')
+                    ->searchable()
+                    ->preload(),
             ])
             ->recordActions([
                 EditAction::make(),

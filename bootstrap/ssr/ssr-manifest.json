@@ -1,52 +1,58 @@
 {
   "node_modules/laravel-vite-plugin/inertia-helpers/index.js": [],
   "resources/js/Layouts/StoreLayout.vue": [
-    "/build/assets/StoreLayout-CE_7GqgF.js"
+    "/build/assets/StoreLayout-DpbhNzPq.js"
   ],
   "resources/js/Layouts/StoreLayout.vue?vue&type=script&setup=true&lang.ts": [
-    "/build/assets/StoreLayout-CE_7GqgF.js"
+    "/build/assets/StoreLayout-DpbhNzPq.js"
   ],
   "resources/js/Pages/Cart.vue": [
-    "/build/assets/Cart-BEieztiK.js"
+    "/build/assets/Cart-BIfd4A-a.js"
   ],
   "resources/js/Pages/Cart.vue?vue&type=script&setup=true&lang.ts": [
-    "/build/assets/Cart-BEieztiK.js"
+    "/build/assets/Cart-BIfd4A-a.js"
   ],
   "resources/js/Pages/Category.vue": [
-    "/build/assets/Category-Dy6xbbnF.js"
+    "/build/assets/Category-TgJ2Qst-.js"
   ],
   "resources/js/Pages/Category.vue?vue&type=script&setup=true&lang.ts": [
-    "/build/assets/Category-Dy6xbbnF.js"
+    "/build/assets/Category-TgJ2Qst-.js"
   ],
   "resources/js/Pages/Checkout.vue": [
-    "/build/assets/Checkout-BIBDJtG5.js"
+    "/build/assets/Checkout-BhBPlE3Z.js"
   ],
   "resources/js/Pages/Checkout.vue?vue&type=script&setup=true&lang.ts": [
-    "/build/assets/Checkout-BIBDJtG5.js"
+    "/build/assets/Checkout-BhBPlE3Z.js"
   ],
   "resources/js/Pages/FakePayment.vue": [
-    "/build/assets/FakePayment-CIMIuili.js"
+    "/build/assets/FakePayment-CRyQUkRn.js"
   ],
   "resources/js/Pages/FakePayment.vue?vue&type=script&setup=true&lang.ts": [
-    "/build/assets/FakePayment-CIMIuili.js"
+    "/build/assets/FakePayment-CRyQUkRn.js"
   ],
   "resources/js/Pages/Home.vue": [
-    "/build/assets/Home-DYMcaIpG.js"
+    "/build/assets/Home-Dw9yzXpv.js"
   ],
   "resources/js/Pages/Home.vue?vue&type=script&setup=true&lang.ts": [
-    "/build/assets/Home-DYMcaIpG.js"
+    "/build/assets/Home-Dw9yzXpv.js"
+  ],
+  "resources/js/Pages/Information.vue": [
+    "/build/assets/Information-D-0zBfn0.js"
+  ],
+  "resources/js/Pages/Information.vue?vue&type=script&setup=true&lang.ts": [
+    "/build/assets/Information-D-0zBfn0.js"
   ],
   "resources/js/Pages/Product.vue": [
-    "/build/assets/Product-DCfv2mZY.js"
+    "/build/assets/Product-Bny9nLu9.js"
   ],
   "resources/js/Pages/Product.vue?vue&type=script&setup=true&lang.ts": [
-    "/build/assets/Product-DCfv2mZY.js"
+    "/build/assets/Product-Bny9nLu9.js"
   ],
   "resources/js/Pages/ThankYou.vue": [
-    "/build/assets/ThankYou-D9TFRYSr.js"
+    "/build/assets/ThankYou-56x7Cd4z.js"
   ],
   "resources/js/Pages/ThankYou.vue?vue&type=script&setup=true&lang.ts": [
-    "/build/assets/ThankYou-D9TFRYSr.js"
+    "/build/assets/ThankYou-56x7Cd4z.js"
   ],
   "resources/js/ssr.ts": []
 }

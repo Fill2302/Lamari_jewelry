@@ -1,7 +1,7 @@
-import { t as StoreLayout_default } from "./StoreLayout-CE_7GqgF.js";
+import { t as StoreLayout_default } from "./StoreLayout-DpbhNzPq.js";
 import { Fragment, createBlock, createCommentVNode, createTextVNode, createVNode, defineComponent, openBlock, renderList, toDisplayString, unref, useSSRContext, withCtx } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
-import { ssrInterpolate, ssrRenderAttr, ssrRenderComponent, ssrRenderList } from "vue/server-renderer";
+import { ssrIncludeBooleanAttr, ssrInterpolate, ssrRenderAttr, ssrRenderComponent, ssrRenderList } from "vue/server-renderer";
 //#region resources/js/Pages/Cart.vue?vue&type=script&setup=true&lang.ts
 var Cart_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
 	__name: "Cart",
@@ -11,13 +11,16 @@ var Cart_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCompo
 		total: {}
 	},
 	setup(__props) {
+		const asset = (url) => !url ? "" : url.startsWith("http") ? url : `/storage/${url}`;
+		const itemImage = (item) => asset(item.variant.product.media?.find((media) => media.type === "image")?.url || item.variant.product.image_url);
+		const setVariant = (item, variantId) => router.put(`/cart/${item.variant.id}/variant`, { variant_id: variantId }, { preserveScroll: true });
 		return (_ctx, _push, _parent, _attrs) => {
 			_push(`<!--[-->`);
 			_push(ssrRenderComponent(unref(Head), { title: "Кошик" }, null, _parent));
 			_push(ssrRenderComponent(StoreLayout_default, null, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
-						_push(`<section class="narrow"${_scopeId}><h1${_scopeId}>Кошик</h1>`);
+						_push(`<section class="narrow cart-page"${_scopeId}><h1${_scopeId}>Кошик</h1>`);
 						if (!__props.items.length) {
 							_push(`<div class="empty"${_scopeId}>Кошик поки порожній. `);
 							_push(ssrRenderComponent(unref(Link), { href: "/" }, {
@@ -31,7 +34,11 @@ var Cart_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCompo
 						} else _push(`<!---->`);
 						_push(`<!--[-->`);
 						ssrRenderList(__props.items, (item) => {
-							_push(`<article class="cart-row"${_scopeId}><img${ssrRenderAttr("src", item.variant.product.image_url)}${_scopeId}><div${_scopeId}><b${_scopeId}>${ssrInterpolate(item.variant.product.name)}</b><p${_scopeId}>${ssrInterpolate(item.variant.name)} · ${ssrInterpolate(item.quantity)} шт.</p></div><b${_scopeId}>${ssrInterpolate((item.total / 100).toLocaleString("uk-UA"))} ₴</b><button class="link"${_scopeId}>Видалити</button></article>`);
+							_push(`<article class="cart-row"${_scopeId}><img${ssrRenderAttr("src", itemImage(item))}${ssrRenderAttr("alt", item.variant.product.name)}${_scopeId}><div${_scopeId}><b${_scopeId}>${ssrInterpolate(item.variant.product.name)}</b><label class="cart-size"${_scopeId}>Довжина<select${ssrRenderAttr("value", item.variant.id)}${_scopeId}><!--[-->`);
+							ssrRenderList(item.variant.product.variants, (variant) => {
+								_push(`<option${ssrRenderAttr("value", variant.id)}${ssrIncludeBooleanAttr(!variant.is_active || variant.stock_on_hand <= variant.stock_reserved) ? " disabled" : ""}${_scopeId}>${ssrInterpolate(variant.name)}</option>`);
+							});
+							_push(`<!--]--></select></label><p${_scopeId}>${ssrInterpolate(item.quantity)} шт. · ${ssrInterpolate(item.variant.sku)}</p></div><b${_scopeId}>${ssrInterpolate((item.total / 100).toLocaleString("uk-UA"))} ₴</b><button class="link"${_scopeId}>Видалити</button></article>`);
 						});
 						_push(`<!--]-->`);
 						if (__props.items.length) _push(`<div class="total"${_scopeId}><span${_scopeId}>Разом</span><b${_scopeId}>${ssrInterpolate((__props.total / 100).toLocaleString("uk-UA"))} ₴</b></div>`);
@@ -48,7 +55,7 @@ var Cart_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCompo
 						}, _parent, _scopeId));
 						else _push(`<!---->`);
 						_push(`</section>`);
-					} else return [createVNode("section", { class: "narrow" }, [
+					} else return [createVNode("section", { class: "narrow cart-page" }, [
 						createVNode("h1", null, "Кошик"),
 						!__props.items.length ? (openBlock(), createBlock("div", {
 							key: 0,
@@ -58,16 +65,35 @@ var Cart_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCompo
 							_: 1
 						})])) : createCommentVNode("", true),
 						(openBlock(true), createBlock(Fragment, null, renderList(__props.items, (item) => {
-							return openBlock(), createBlock("article", { class: "cart-row" }, [
-								createVNode("img", { src: item.variant.product.image_url }, null, 8, ["src"]),
-								createVNode("div", null, [createVNode("b", null, toDisplayString(item.variant.product.name), 1), createVNode("p", null, toDisplayString(item.variant.name) + " · " + toDisplayString(item.quantity) + " шт.", 1)]),
+							return openBlock(), createBlock("article", {
+								key: item.variant.id,
+								class: "cart-row"
+							}, [
+								createVNode("img", {
+									src: itemImage(item),
+									alt: item.variant.product.name
+								}, null, 8, ["src", "alt"]),
+								createVNode("div", null, [
+									createVNode("b", null, toDisplayString(item.variant.product.name), 1),
+									createVNode("label", { class: "cart-size" }, [createTextVNode("Довжина"), createVNode("select", {
+										value: item.variant.id,
+										onChange: ($event) => setVariant(item, Number($event.target.value))
+									}, [(openBlock(true), createBlock(Fragment, null, renderList(item.variant.product.variants, (variant) => {
+										return openBlock(), createBlock("option", {
+											key: variant.id,
+											value: variant.id,
+											disabled: !variant.is_active || variant.stock_on_hand <= variant.stock_reserved
+										}, toDisplayString(variant.name), 9, ["value", "disabled"]);
+									}), 128))], 40, ["value", "onChange"])]),
+									createVNode("p", null, toDisplayString(item.quantity) + " шт. · " + toDisplayString(item.variant.sku), 1)
+								]),
 								createVNode("b", null, toDisplayString((item.total / 100).toLocaleString("uk-UA")) + " ₴", 1),
 								createVNode("button", {
 									class: "link",
 									onClick: ($event) => unref(router).delete(`/cart/${item.variant.id}`)
 								}, "Видалити", 8, ["onClick"])
 							]);
-						}), 256)),
+						}), 128)),
 						__props.items.length ? (openBlock(), createBlock("div", {
 							key: 1,
 							class: "total"
