@@ -33,7 +33,8 @@ class CheckoutController extends Controller
 
         $d = $r->validate(
             [
-                'customer_name' => 'required|string|max:120',
+                'first_name' => 'required|string|max:60',
+                'last_name' => 'required|string|max:60',
                 'email' => 'required|email',
                 'phone' => ['required', 'regex:/^\+380\d{9}$/'],
                 'city' => 'required|string|max:120',
@@ -59,7 +60,9 @@ class CheckoutController extends Controller
         }
 
         [$order,$payment] = $checkout->create([
-            'customer_name' => $d['customer_name'],
+            'first_name' => $d['first_name'],
+            'last_name' => $d['last_name'],
+            'customer_name' => $d['first_name'].' '.$d['last_name'],
             'email' => $d['email'],
             'phone' => $d['phone'],
             'shipping_address' => [

@@ -30,8 +30,11 @@ class OrdersTable
                 TextColumn::make('phone')
                     ->label('Телефон')
                     ->searchable(),
-                TextColumn::make('customer_name')
-                    ->label('Ім’я покупця')
+                TextColumn::make('first_name')
+                    ->label('Ім’я')
+                    ->searchable(),
+                TextColumn::make('last_name')
+                    ->label('Прізвище')
                     ->searchable(),
                 TextColumn::make('status')
                     ->label('Статус замовлення')

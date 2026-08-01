@@ -6,7 +6,8 @@ import StoreLayout from '../Layouts/StoreLayout.vue';
 defineProps<{ items: any[], total: number }>();
 
 const form = useForm({
-  customer_name: '',
+  first_name: '',
+  last_name: '',
   email: '',
   phone: '+38',
   city: '',
@@ -164,9 +165,14 @@ function submit() {
       <form class="checkout" @submit.prevent="submit">
         <div class="checkout-fields">
           <label>
-            Ім’я та прізвище
-            <input v-model="form.customer_name" autocomplete="name" required />
-            <small v-if="form.errors.customer_name">{{ form.errors.customer_name }}</small>
+            Ім’я
+            <input v-model="form.first_name" autocomplete="given-name" required />
+            <small v-if="form.errors.first_name">{{ form.errors.first_name }}</small>
+          </label>
+          <label>
+            Прізвище
+            <input v-model="form.last_name" autocomplete="family-name" required />
+            <small v-if="form.errors.last_name">{{ form.errors.last_name }}</small>
           </label>
           <label>
             Номер телефону

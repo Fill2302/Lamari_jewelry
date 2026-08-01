@@ -35,8 +35,11 @@ class OrderForm
                     ->label('Телефон')
                     ->tel()
                     ->required(),
-                TextInput::make('customer_name')
-                    ->label('Ім’я покупця')
+                TextInput::make('first_name')
+                    ->label('Ім’я')
+                    ->required(),
+                TextInput::make('last_name')
+                    ->label('Прізвище')
                     ->required(),
                 Textarea::make('shipping_address')
                     ->label('Адреса доставки')
