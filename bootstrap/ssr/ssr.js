@@ -28,6 +28,6 @@ createServer((page) => createInertiaApp({
 		"./Pages/ThankYou.vue": () => import("./assets/ThankYou-56x7Cd4z.js")
 	})),
 	setup: ({ App, props, plugin }) => createSSRApp({ render: () => h(App, props) }).use(plugin)
-}));
+}), { host: "127.0.0.1" });
 //#endregion
 export {};
