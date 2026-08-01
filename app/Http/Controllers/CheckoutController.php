@@ -40,6 +40,7 @@ class CheckoutController extends Controller
                 'city_ref' => ['required', 'uuid'],
                 'warehouse' => 'required|string|max:255',
                 'warehouse_ref' => ['required', 'uuid'],
+                'payment_method' => ['required', 'in:online,cash_on_delivery'],
             ],
             ['phone.regex' => 'Введіть повний номер у форматі +38 0XX XXX XX XX.'],
         );
@@ -68,7 +69,7 @@ class CheckoutController extends Controller
                 'address' => $warehouse['name'],
                 'warehouse_ref' => $warehouse['ref'],
             ],
-        ], $cart->items());
+        ], $cart->items(), $d['payment_method']);
         $cart->clear();
 
         return redirect($payment['checkout_url']);

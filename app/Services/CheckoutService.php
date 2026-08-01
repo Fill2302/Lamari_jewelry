@@ -14,9 +14,9 @@ class CheckoutService
 {
     public function __construct(private MerchantSelector $selector, private PaymentProvider $provider) {}
 
-    public function create(array $customer, array $cart): array
+    public function create(array $customer, array $cart, string $paymentMethod = 'online'): array
     {
-        return DB::transaction(function () use ($customer, $cart) {
+        return DB::transaction(function () use ($customer, $cart, $paymentMethod) {
             if (! $cart) {
                 throw new RuntimeException('Cart is empty.');
             }$resolved = [];
@@ -30,10 +30,17 @@ class CheckoutService
                 $resolved[] = [$v, $q];
                 $total += $v->price_amount * $q;
             }$merchant = $this->selector->select($total);
-            $order = Order::create([...$customer, 'number' => 'LAM-'.now()->format('ymd').'-'.strtoupper(Str::random(6)), 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'subtotal_amount' => $total, 'total_amount' => $total, 'currency' => 'UAH']);
+            $cashOnDelivery = $paymentMethod === 'cash_on_delivery';
+            $order = Order::create([...$customer, 'number' => 'LAM-'.now()->format('ymd').'-'.strtoupper(Str::random(6)), 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'payment_method' => $paymentMethod, 'status' => $cashOnDelivery ? 'confirmed' : 'pending_payment', 'payment_status' => $cashOnDelivery ? 'cash_on_delivery' : 'pending', 'subtotal_amount' => $total, 'total_amount' => $total, 'currency' => 'UAH']);
             foreach ($resolved as [$v,$q]) {
                 $order->items()->create(['product_variant_id' => $v->id, 'sku' => $v->sku, 'name' => $v->product->name.' — '.$v->name, 'quantity' => $q, 'unit_price_amount' => $v->price_amount, 'total_amount' => $v->price_amount * $q]);
-            }$payment = Payment::create(['order_id' => $order->id, 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'provider' => $this->provider->name(), 'amount' => $total, 'currency' => 'UAH', 'idempotency_key' => (string) Str::uuid()]);
+            }
+
+            if ($cashOnDelivery) {
+                return [$order, ['checkout_url' => route('orders.thank-you', $order)]];
+            }
+
+            $payment = Payment::create(['order_id' => $order->id, 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'provider' => $this->provider->name(), 'amount' => $total, 'currency' => 'UAH', 'idempotency_key' => (string) Str::uuid()]);
 
             return [$order, $this->provider->createPayment($payment)];
         });

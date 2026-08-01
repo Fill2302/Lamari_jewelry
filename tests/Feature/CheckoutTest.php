@@ -43,4 +43,21 @@ class CheckoutTest extends TestCase
         $this->app->make(CheckoutService::class)->create(['customer_name' => 'Filip', 'email' => 'f@example.com', 'phone' => '1', 'shipping_address' => []], [['variant' => $v, 'quantity' => 2]]);
         $this->assertSame(0, $v->fresh()->stock_reserved);
     }
+
+    public function test_cash_on_delivery_order_skips_online_payment(): void
+    {
+        $v = $this->variant();
+
+        [$order, $checkout] = $this->app->make(CheckoutService::class)->create(
+            ['customer_name' => 'Filip', 'email' => 'f@example.com', 'phone' => '+380000000000', 'shipping_address' => ['city' => 'Kyiv']],
+            [['variant' => $v, 'quantity' => 1]],
+            'cash_on_delivery',
+        );
+
+        $this->assertSame('cash_on_delivery', $order->payment_method);
+        $this->assertSame('cash_on_delivery', $order->payment_status);
+        $this->assertSame('confirmed', $order->status);
+        $this->assertCount(0, $order->payments);
+        $this->assertSame(route('orders.thank-you', $order), $checkout['checkout_url']);
+    }
 }

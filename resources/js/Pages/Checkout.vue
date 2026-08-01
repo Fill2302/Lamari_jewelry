@@ -13,6 +13,7 @@ const form = useForm({
   city_ref: '',
   warehouse: '',
   warehouse_ref: '',
+  payment_method: 'online',
 });
 
 type City = { ref: string; name: string; area?: string; type?: string };
@@ -214,6 +215,18 @@ function submit() {
             </ul>
             <small v-if="form.errors.warehouse">{{ form.errors.warehouse }}</small>
           </label>
+          <fieldset class="checkout-payment-methods">
+            <legend>Спосіб оплати</legend>
+            <label :class="{ selected: form.payment_method === 'online' }">
+              <input v-model="form.payment_method" type="radio" value="online" />
+              <span><strong>Онлайн-оплата</strong><small>На тестовому сайті оплата не списується</small></span>
+            </label>
+            <label :class="{ selected: form.payment_method === 'cash_on_delivery' }">
+              <input v-model="form.payment_method" type="radio" value="cash_on_delivery" />
+              <span><strong>Оплата при отриманні</strong><small>Післяплата у відділенні Нової пошти</small></span>
+            </label>
+            <small v-if="form.errors.payment_method">{{ form.errors.payment_method }}</small>
+          </fieldset>
         </div>
 
         <aside class="checkout-summary">
