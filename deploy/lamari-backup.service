@@ -1,0 +1,11 @@
+[Unit]
+Description=Back up the Lamari staging database and product media
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/backup-lamari
+User=root
+Group=root
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
