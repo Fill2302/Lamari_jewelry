@@ -109,7 +109,8 @@ const openProduct = (event:MouseEvent, product:any) => {
   event.preventDefault();
   swipeBlockedLinks.delete(product.id);
 };
-const price = (product:any) => product.variants[0]?.price_amount || 0;
+const price = (product:any) => product.variants[0]?.effective_price_amount ?? product.variants[0]?.price_amount ?? 0;
+const originalPrice = (product:any) => product.variants[0]?.discount_percentage ? product.variants[0]?.original_price_amount : product.compare_at_price_amount;
 const availableVariant = (product:any) => product.variants?.find((variant:any) =>
   variant.is_active && variant.stock_on_hand > variant.stock_reserved
 );
@@ -273,7 +274,7 @@ watch(catalogColumns, (columns) => {
             </div>
           </div>
           <h3>{{product.name}}</h3>
-          <p class="catalog-price"><del v-if="product.compare_at_price_amount">{{(product.compare_at_price_amount/100).toLocaleString('uk-UA')}} ₴</del><span>{{(price(product)/100).toLocaleString('uk-UA')}} ₴</span></p>
+          <p class="catalog-price"><del v-if="originalPrice(product)">{{(originalPrice(product)/100).toLocaleString('uk-UA')}} ₴</del><span>{{(price(product)/100).toLocaleString('uk-UA')}} ₴</span></p>
         </Link>
         <button
           type="button"

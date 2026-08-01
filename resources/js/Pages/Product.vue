@@ -142,14 +142,14 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateStickyBuy);
 });
 const selectedVariant = computed(() => p.product.variants.find((v: any) => v.id === selected.value));
-const compareAtPrice = computed(() => Number(p.product.compare_at_price_amount || 0));
-const currentPrice = computed(() => Number(selectedVariant.value?.price_amount || 0));
+const compareAtPrice = computed(() => Number(selectedVariant.value?.discount_percentage ? selectedVariant.value.original_price_amount : p.product.compare_at_price_amount || 0));
+const currentPrice = computed(() => Number(selectedVariant.value?.effective_price_amount ?? selectedVariant.value?.price_amount ?? 0));
 const discountLabel = computed(() => {
   if (!compareAtPrice.value || !currentPrice.value || compareAtPrice.value <= currentPrice.value) return '';
   const catalogLabel = p.product.catalog_badges?.find((badge: any) => badge.type === 'sale')?.label;
   return catalogLabel || `-${Math.round((1 - currentPrice.value / compareAtPrice.value) * 100)}%`;
 });
-const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.product.name, image: media.value.filter((m:any)=>m.type==='image').map((m:any)=>asset(m.url)), description: p.product.description, sku: p.product.variants[0]?.sku, offers: { '@type': 'Offer', priceCurrency: 'UAH', price: p.product.variants[0]?.price_amount / 100, availability: 'https://schema.org/InStock' } };
+const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.product.name, image: media.value.filter((m:any)=>m.type==='image').map((m:any)=>asset(m.url)), description: p.product.description, sku: p.product.variants[0]?.sku, offers: { '@type': 'Offer', priceCurrency: 'UAH', price: (p.product.variants[0]?.effective_price_amount ?? p.product.variants[0]?.price_amount) / 100, availability: 'https://schema.org/InStock' } };
 </script>
 
 <template>

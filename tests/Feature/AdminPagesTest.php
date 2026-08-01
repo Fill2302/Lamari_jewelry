@@ -28,6 +28,8 @@ class AdminPagesTest extends TestCase
             '/admin/content-pages/create',
             '/admin/promo-codes',
             '/admin/promo-codes/create',
+            '/admin/discounts',
+            '/admin/discounts/create',
             '/admin/users',
             '/admin/users/create',
         ] as $path) {
