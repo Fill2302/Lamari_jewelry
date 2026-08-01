@@ -108,7 +108,20 @@ var Category_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 			event.preventDefault();
 			swipeBlockedLinks.delete(product.id);
 		};
-		const price = (product) => product.variants[0]?.price_amount || 0;
+		const price = (product) => product.variants[0]?.effective_price_amount ?? product.variants[0]?.price_amount ?? 0;
+		const originalPrice = (product) => product.variants[0]?.discount_percentage ? product.variants[0]?.original_price_amount : product.compare_at_price_amount;
+		const catalogBadges = (product) => {
+			const badges = Array.isArray(product.catalog_badges) ? [...product.catalog_badges] : [];
+			const percentage = Number(product.variants?.[0]?.discount_percentage || 0);
+			if (percentage > 0) {
+				const label = `-${Math.round(percentage)}%`;
+				if (!badges.some((badge) => badge.type === "sale" && badge.label === label)) badges.push({
+					type: "sale",
+					label
+				});
+			}
+			return badges;
+		};
 		const availableVariant = (product) => product.variants?.find((variant) => variant.is_active && variant.stock_on_hand > variant.stock_reserved);
 		const addingProduct = ref(null);
 		const addToCart = (product) => {
@@ -244,9 +257,9 @@ var Category_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 												_push(`<!--]-->`);
 											});
 											_push(`<!--]--></div>`);
-											if (product.catalog_badges?.length) {
+											if (catalogBadges(product).length) {
 												_push(`<div class="catalog-badges"${_scopeId}><!--[-->`);
-												ssrRenderList(product.catalog_badges, (badge) => {
+												ssrRenderList(catalogBadges(product), (badge) => {
 													_push(`<span class="${ssrRenderClass([`catalog-badge-${badge.type}`, "catalog-badge"])}"${_scopeId}>${ssrInterpolate(badge.label)}</span>`);
 												});
 												_push(`<!--]--></div>`);
@@ -259,7 +272,7 @@ var Category_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 												_push(`<!--]--></div>`);
 											} else _push(`<!---->`);
 											_push(`</div><h3${_scopeId}>${ssrInterpolate(product.name)}</h3><p class="catalog-price"${_scopeId}>`);
-											if (product.compare_at_price_amount) _push(`<del${_scopeId}>${ssrInterpolate((product.compare_at_price_amount / 100).toLocaleString("uk-UA"))} ₴</del>`);
+											if (originalPrice(product)) _push(`<del${_scopeId}>${ssrInterpolate((originalPrice(product) / 100).toLocaleString("uk-UA"))} ₴</del>`);
 											else _push(`<!---->`);
 											_push(`<span${_scopeId}>${ssrInterpolate((price(product) / 100).toLocaleString("uk-UA"))} ₴</span></p>`);
 										} else return [
@@ -294,10 +307,10 @@ var Category_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 														tabindex: "-1"
 													}, null, 8, ["src", "poster"]))], 64);
 												}), 128))], 6),
-												product.catalog_badges?.length ? (openBlock(), createBlock("div", {
+												catalogBadges(product).length ? (openBlock(), createBlock("div", {
 													key: 0,
 													class: "catalog-badges"
-												}, [(openBlock(true), createBlock(Fragment, null, renderList(product.catalog_badges, (badge) => {
+												}, [(openBlock(true), createBlock(Fragment, null, renderList(catalogBadges(product), (badge) => {
 													return openBlock(), createBlock("span", {
 														key: `${badge.type}-${badge.label}`,
 														class: ["catalog-badge", `catalog-badge-${badge.type}`]
@@ -320,7 +333,7 @@ var Category_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 												"onTouchcancel"
 											]),
 											createVNode("h3", null, toDisplayString(product.name), 1),
-											createVNode("p", { class: "catalog-price" }, [product.compare_at_price_amount ? (openBlock(), createBlock("del", { key: 0 }, toDisplayString((product.compare_at_price_amount / 100).toLocaleString("uk-UA")) + " ₴", 1)) : createCommentVNode("", true), createVNode("span", null, toDisplayString((price(product) / 100).toLocaleString("uk-UA")) + " ₴", 1)])
+											createVNode("p", { class: "catalog-price" }, [originalPrice(product) ? (openBlock(), createBlock("del", { key: 0 }, toDisplayString((originalPrice(product) / 100).toLocaleString("uk-UA")) + " ₴", 1)) : createCommentVNode("", true), createVNode("span", null, toDisplayString((price(product) / 100).toLocaleString("uk-UA")) + " ₴", 1)])
 										];
 									}),
 									_: 2
@@ -606,10 +619,10 @@ var Category_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 												tabindex: "-1"
 											}, null, 8, ["src", "poster"]))], 64);
 										}), 128))], 6),
-										product.catalog_badges?.length ? (openBlock(), createBlock("div", {
+										catalogBadges(product).length ? (openBlock(), createBlock("div", {
 											key: 0,
 											class: "catalog-badges"
-										}, [(openBlock(true), createBlock(Fragment, null, renderList(product.catalog_badges, (badge) => {
+										}, [(openBlock(true), createBlock(Fragment, null, renderList(catalogBadges(product), (badge) => {
 											return openBlock(), createBlock("span", {
 												key: `${badge.type}-${badge.label}`,
 												class: ["catalog-badge", `catalog-badge-${badge.type}`]
@@ -632,7 +645,7 @@ var Category_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 										"onTouchcancel"
 									]),
 									createVNode("h3", null, toDisplayString(product.name), 1),
-									createVNode("p", { class: "catalog-price" }, [product.compare_at_price_amount ? (openBlock(), createBlock("del", { key: 0 }, toDisplayString((product.compare_at_price_amount / 100).toLocaleString("uk-UA")) + " ₴", 1)) : createCommentVNode("", true), createVNode("span", null, toDisplayString((price(product) / 100).toLocaleString("uk-UA")) + " ₴", 1)])
+									createVNode("p", { class: "catalog-price" }, [originalPrice(product) ? (openBlock(), createBlock("del", { key: 0 }, toDisplayString((originalPrice(product) / 100).toLocaleString("uk-UA")) + " ₴", 1)) : createCommentVNode("", true), createVNode("span", null, toDisplayString((price(product) / 100).toLocaleString("uk-UA")) + " ₴", 1)])
 								]),
 								_: 2
 							}, 1032, ["href", "onClick"]), createVNode("button", {

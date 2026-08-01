@@ -111,6 +111,19 @@ const openProduct = (event:MouseEvent, product:any) => {
 };
 const price = (product:any) => product.variants[0]?.effective_price_amount ?? product.variants[0]?.price_amount ?? 0;
 const originalPrice = (product:any) => product.variants[0]?.discount_percentage ? product.variants[0]?.original_price_amount : product.compare_at_price_amount;
+const catalogBadges = (product:any) => {
+  const badges = Array.isArray(product.catalog_badges) ? [...product.catalog_badges] : [];
+  const percentage = Number(product.variants?.[0]?.discount_percentage || 0);
+
+  if (percentage > 0) {
+    const label = `-${Math.round(percentage)}%`;
+    if (!badges.some((badge:any) => badge.type === 'sale' && badge.label === label)) {
+      badges.push({ type: 'sale', label });
+    }
+  }
+
+  return badges;
+};
 const availableVariant = (product:any) => product.variants?.find((variant:any) =>
   variant.is_active && variant.stock_on_hand > variant.stock_reserved
 );
@@ -264,7 +277,7 @@ watch(catalogColumns, (columns) => {
                 ></video>
               </template>
             </div>
-            <div v-if="product.catalog_badges?.length" class="catalog-badges"><span v-for="badge in product.catalog_badges" :key="`${badge.type}-${badge.label}`" class="catalog-badge" :class="`catalog-badge-${badge.type}`">{{badge.label}}</span></div>
+            <div v-if="catalogBadges(product).length" class="catalog-badges"><span v-for="badge in catalogBadges(product)" :key="`${badge.type}-${badge.label}`" class="catalog-badge" :class="`catalog-badge-${badge.type}`">{{badge.label}}</span></div>
             <div v-if="mediaItems(product).length > 1" class="catalog-image-dots" :aria-label="`${mediaItems(product).length} медіафайлів`">
               <span
                 v-for="(_, index) in mediaItems(product)"

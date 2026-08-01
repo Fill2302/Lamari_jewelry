@@ -1,7 +1,7 @@
 import { t as StoreLayout_default } from "./StoreLayout-DpbhNzPq.js";
-import { Fragment, createBlock, createCommentVNode, createTextVNode, createVNode, defineComponent, openBlock, ref, renderList, toDisplayString, unref, useSSRContext, vModelText, watch, withCtx, withDirectives, withModifiers } from "vue";
+import { Fragment, createBlock, createCommentVNode, createTextVNode, createVNode, defineComponent, openBlock, ref, renderList, toDisplayString, unref, useSSRContext, vModelRadio, vModelText, watch, withCtx, withDirectives, withModifiers } from "vue";
 import { Head, useForm } from "@inertiajs/vue3";
-import { ssrIncludeBooleanAttr, ssrInterpolate, ssrRenderAttr, ssrRenderClass, ssrRenderComponent, ssrRenderList } from "vue/server-renderer";
+import { ssrIncludeBooleanAttr, ssrInterpolate, ssrLooseEqual, ssrRenderAttr, ssrRenderClass, ssrRenderComponent, ssrRenderList } from "vue/server-renderer";
 //#region resources/js/Pages/Checkout.vue?vue&type=script&setup=true&lang.ts
 var phoneError = "Введіть повний номер у форматі +38 0XX XXX XX XX";
 var Checkout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
@@ -13,13 +13,15 @@ var Checkout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 	},
 	setup(__props) {
 		const form = useForm({
-			customer_name: "",
+			first_name: "",
+			last_name: "",
 			email: "",
 			phone: "+38",
 			city: "",
 			city_ref: "",
 			warehouse: "",
-			warehouse_ref: ""
+			warehouse_ref: "",
+			payment_method: "online"
 		});
 		const quickCities = [
 			"Київ",
@@ -143,8 +145,11 @@ var Checkout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 			_push(ssrRenderComponent(StoreLayout_default, null, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) {
-						_push(`<section class="checkout-page"${_scopeId}><header class="checkout-heading"${_scopeId}><p class="eyebrow"${_scopeId}>ВАШЕ ЗАМОВЛЕННЯ</p><h1${_scopeId}>Оформлення замовлення</h1><p${_scopeId}>Заповніть контактні дані — ми зв’яжемося з вами для підтвердження.</p></header><form class="checkout"${_scopeId}><div class="checkout-fields"${_scopeId}><label${_scopeId}> Ім’я та прізвище <input${ssrRenderAttr("value", unref(form).customer_name)} autocomplete="name" required${_scopeId}>`);
-						if (unref(form).errors.customer_name) _push(`<small${_scopeId}>${ssrInterpolate(unref(form).errors.customer_name)}</small>`);
+						_push(`<section class="checkout-page"${_scopeId}><header class="checkout-heading"${_scopeId}><p class="eyebrow"${_scopeId}>ВАШЕ ЗАМОВЛЕННЯ</p><h1${_scopeId}>Оформлення замовлення</h1><p${_scopeId}>Заповніть контактні дані — ми зв’яжемося з вами для підтвердження.</p></header><form class="checkout"${_scopeId}><div class="checkout-fields"${_scopeId}><label${_scopeId}> Ім’я <input${ssrRenderAttr("value", unref(form).first_name)} autocomplete="given-name" required${_scopeId}>`);
+						if (unref(form).errors.first_name) _push(`<small${_scopeId}>${ssrInterpolate(unref(form).errors.first_name)}</small>`);
+						else _push(`<!---->`);
+						_push(`</label><label${_scopeId}> Прізвище <input${ssrRenderAttr("value", unref(form).last_name)} autocomplete="family-name" required${_scopeId}>`);
+						if (unref(form).errors.last_name) _push(`<small${_scopeId}>${ssrInterpolate(unref(form).errors.last_name)}</small>`);
 						else _push(`<!---->`);
 						_push(`</label><label${_scopeId}> Номер телефону <input${ssrRenderAttr("value", unref(form).phone)} class="${ssrRenderClass({ "is-invalid": unref(form).errors.phone })}" type="tel" inputmode="numeric" autocomplete="tel" maxlength="17" aria-describedby="phone-error"${ssrRenderAttr("aria-invalid", Boolean(unref(form).errors.phone))} required${_scopeId}>`);
 						if (unref(form).errors.phone) _push(`<small id="phone-error"${_scopeId}>${ssrInterpolate(unref(form).errors.phone)}</small>`);
@@ -183,7 +188,10 @@ var Checkout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 						} else _push(`<!---->`);
 						if (unref(form).errors.warehouse) _push(`<small${_scopeId}>${ssrInterpolate(unref(form).errors.warehouse)}</small>`);
 						else _push(`<!---->`);
-						_push(`</label></div><aside class="checkout-summary"${_scopeId}><h2${_scopeId}>Разом</h2><div class="checkout-summary-row"${_scopeId}><span${_scopeId}>Товарів: ${ssrInterpolate(__props.items.reduce((sum, item) => sum + item.quantity, 0))}</span><b${_scopeId}>${ssrInterpolate((__props.total / 100).toLocaleString("uk-UA"))} ₴</b></div><p${_scopeId}>Вартість доставки буде розрахована під час підтвердження замовлення.</p><button class="button"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""}${_scopeId}>${ssrInterpolate(unref(form).processing ? "Оформлюємо…" : "Підтвердити замовлення")}</button></aside></form></section>`);
+						_push(`</label><fieldset class="checkout-payment-methods"${_scopeId}><legend${_scopeId}>Спосіб оплати</legend><label class="${ssrRenderClass({ selected: unref(form).payment_method === "online" })}"${_scopeId}><input${ssrIncludeBooleanAttr(ssrLooseEqual(unref(form).payment_method, "online")) ? " checked" : ""} type="radio" value="online"${_scopeId}><span${_scopeId}><strong${_scopeId}>Онлайн-оплата</strong><small${_scopeId}>На тестовому сайті оплата не списується</small></span></label><label class="${ssrRenderClass({ selected: unref(form).payment_method === "cash_on_delivery" })}"${_scopeId}><input${ssrIncludeBooleanAttr(ssrLooseEqual(unref(form).payment_method, "cash_on_delivery")) ? " checked" : ""} type="radio" value="cash_on_delivery"${_scopeId}><span${_scopeId}><strong${_scopeId}>Оплата при отриманні</strong><small${_scopeId}>Післяплата у відділенні Нової пошти</small></span></label>`);
+						if (unref(form).errors.payment_method) _push(`<small${_scopeId}>${ssrInterpolate(unref(form).errors.payment_method)}</small>`);
+						else _push(`<!---->`);
+						_push(`</fieldset></div><aside class="checkout-summary"${_scopeId}><h2${_scopeId}>Разом</h2><div class="checkout-summary-row"${_scopeId}><span${_scopeId}>Товарів: ${ssrInterpolate(__props.items.reduce((sum, item) => sum + item.quantity, 0))}</span><b${_scopeId}>${ssrInterpolate((__props.total / 100).toLocaleString("uk-UA"))} ₴</b></div><p${_scopeId}>Вартість доставки буде розрахована під час підтвердження замовлення.</p><button class="button"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""}${_scopeId}>${ssrInterpolate(unref(form).processing ? "Оформлюємо…" : "Підтвердити замовлення")}</button></aside></form></section>`);
 					} else return [createVNode("section", { class: "checkout-page" }, [createVNode("header", { class: "checkout-heading" }, [
 						createVNode("p", { class: "eyebrow" }, "ВАШЕ ЗАМОВЛЕННЯ"),
 						createVNode("h1", null, "Оформлення замовлення"),
@@ -193,13 +201,22 @@ var Checkout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 						onSubmit: withModifiers(submit, ["prevent"])
 					}, [createVNode("div", { class: "checkout-fields" }, [
 						createVNode("label", null, [
-							createTextVNode(" Ім’я та прізвище "),
+							createTextVNode(" Ім’я "),
 							withDirectives(createVNode("input", {
-								"onUpdate:modelValue": ($event) => unref(form).customer_name = $event,
-								autocomplete: "name",
+								"onUpdate:modelValue": ($event) => unref(form).first_name = $event,
+								autocomplete: "given-name",
 								required: ""
-							}, null, 8, ["onUpdate:modelValue"]), [[vModelText, unref(form).customer_name]]),
-							unref(form).errors.customer_name ? (openBlock(), createBlock("small", { key: 0 }, toDisplayString(unref(form).errors.customer_name), 1)) : createCommentVNode("", true)
+							}, null, 8, ["onUpdate:modelValue"]), [[vModelText, unref(form).first_name]]),
+							unref(form).errors.first_name ? (openBlock(), createBlock("small", { key: 0 }, toDisplayString(unref(form).errors.first_name), 1)) : createCommentVNode("", true)
+						]),
+						createVNode("label", null, [
+							createTextVNode(" Прізвище "),
+							withDirectives(createVNode("input", {
+								"onUpdate:modelValue": ($event) => unref(form).last_name = $event,
+								autocomplete: "family-name",
+								required: ""
+							}, null, 8, ["onUpdate:modelValue"]), [[vModelText, unref(form).last_name]]),
+							unref(form).errors.last_name ? (openBlock(), createBlock("small", { key: 0 }, toDisplayString(unref(form).errors.last_name), 1)) : createCommentVNode("", true)
 						]),
 						createVNode("label", null, [
 							createTextVNode(" Номер телефону "),
@@ -297,6 +314,20 @@ var Checkout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 								}, [createVNode("strong", null, toDisplayString(warehouse.name), 1), warehouse.address ? (openBlock(), createBlock("small", { key: 0 }, toDisplayString(warehouse.address), 1)) : createCommentVNode("", true)], 8, ["onClick"])]);
 							}), 128))])) : createCommentVNode("", true),
 							unref(form).errors.warehouse ? (openBlock(), createBlock("small", { key: 2 }, toDisplayString(unref(form).errors.warehouse), 1)) : createCommentVNode("", true)
+						]),
+						createVNode("fieldset", { class: "checkout-payment-methods" }, [
+							createVNode("legend", null, "Спосіб оплати"),
+							createVNode("label", { class: { selected: unref(form).payment_method === "online" } }, [withDirectives(createVNode("input", {
+								"onUpdate:modelValue": ($event) => unref(form).payment_method = $event,
+								type: "radio",
+								value: "online"
+							}, null, 8, ["onUpdate:modelValue"]), [[vModelRadio, unref(form).payment_method]]), createVNode("span", null, [createVNode("strong", null, "Онлайн-оплата"), createVNode("small", null, "На тестовому сайті оплата не списується")])], 2),
+							createVNode("label", { class: { selected: unref(form).payment_method === "cash_on_delivery" } }, [withDirectives(createVNode("input", {
+								"onUpdate:modelValue": ($event) => unref(form).payment_method = $event,
+								type: "radio",
+								value: "cash_on_delivery"
+							}, null, 8, ["onUpdate:modelValue"]), [[vModelRadio, unref(form).payment_method]]), createVNode("span", null, [createVNode("strong", null, "Оплата при отриманні"), createVNode("small", null, "Післяплата у відділенні Нової пошти")])], 2),
+							unref(form).errors.payment_method ? (openBlock(), createBlock("small", { key: 0 }, toDisplayString(unref(form).errors.payment_method), 1)) : createCommentVNode("", true)
 						])
 					]), createVNode("aside", { class: "checkout-summary" }, [
 						createVNode("h2", null, "Разом"),

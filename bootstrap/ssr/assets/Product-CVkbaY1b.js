@@ -155,8 +155,8 @@ var Product_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCo
 			window.removeEventListener("resize", updateStickyBuy);
 		});
 		const selectedVariant = computed(() => p.product.variants.find((v) => v.id === selected.value));
-		const compareAtPrice = computed(() => Number(p.product.compare_at_price_amount || 0));
-		const currentPrice = computed(() => Number(selectedVariant.value?.price_amount || 0));
+		const compareAtPrice = computed(() => Number(selectedVariant.value?.discount_percentage ? selectedVariant.value.original_price_amount : p.product.compare_at_price_amount || 0));
+		const currentPrice = computed(() => Number(selectedVariant.value?.effective_price_amount ?? selectedVariant.value?.price_amount ?? 0));
 		const discountLabel = computed(() => {
 			if (!compareAtPrice.value || !currentPrice.value || compareAtPrice.value <= currentPrice.value) return "";
 			return p.product.catalog_badges?.find((badge) => badge.type === "sale")?.label || `-${Math.round((1 - currentPrice.value / compareAtPrice.value) * 100)}%`;
@@ -171,7 +171,7 @@ var Product_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCo
 			offers: {
 				"@type": "Offer",
 				priceCurrency: "UAH",
-				price: p.product.variants[0]?.price_amount / 100,
+				price: (p.product.variants[0]?.effective_price_amount ?? p.product.variants[0]?.price_amount) / 100,
 				availability: "https://schema.org/InStock"
 			}
 		};
