@@ -402,16 +402,19 @@ nav {
 }
 .icon-with-count small {
     position: absolute;
-    right: -5px;
-    bottom: -3px;
-    min-width: 14px;
-    height: 14px;
+    top: -7px;
+    right: -7px;
+    min-width: 15px;
+    height: 15px;
     padding: 0 3px;
-    border-radius: 8px;
-    background: #b59b87;
-    color: #fff;
+    border-radius: 999px;
+    background: #f3d8cc;
+    color: #3b241b;
     font-size: 0.55rem;
-    line-height: 14px;
+    line-height: 15px;
+    text-align: center;
+    text-shadow: none;
+    filter: none;
 }
 .mobile-menu-trigger {
     display: none;

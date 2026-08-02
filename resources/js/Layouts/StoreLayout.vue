@@ -106,11 +106,11 @@ onUnmounted(() => window.removeEventListener('keydown', handleEscape));
       </button>
       <Link href="/catalog" :aria-label="`Обране: ${favoriteCount}`" class="header-icon icon-with-count">
         <svg viewBox="0 0 24 24"><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>
-        <small v-if="favoriteCount">{{ favoriteCount }}</small>
+        <small>{{ favoriteCount }}</small>
       </Link>
       <button class="cart-trigger header-icon icon-with-count" aria-label="Кошик" @click="cartOpen = true">
         <svg viewBox="0 0 24 24"><path d="M5 8h14l1 13H4L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
-        <small v-if="page.props.cartCount">{{ page.props.cartCount }}</small>
+        <small>{{ page.props.cartCount || 0 }}</small>
       </button>
       <button class="menu-trigger mobile-menu-trigger header-icon" aria-label="Відкрити меню" @click="menuOpen = !menuOpen">
         <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
