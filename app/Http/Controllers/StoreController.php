@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Attribute;
 use App\Models\Category;
+use App\Models\HomepageSetting;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,6 +16,7 @@ class StoreController extends Controller
 {
     public function home(): Response
     {
+        $homepage = HomepageSetting::query()->first();
         $productRelations = ['variants', 'media'];
         $newProducts = Product::where('is_active', true)
             ->with($productRelations)
@@ -41,11 +43,14 @@ class StoreController extends Controller
         return Inertia::render('Home', [
             'categories' => Category::whereNull('parent_id')
                 ->where('is_active', true)
+                ->where('show_on_home', true)
                 ->with('children')
                 ->orderBy('position')
+                ->orderBy('id')
                 ->get(),
             'newProducts' => $newProducts,
             'hitProducts' => $hitProducts,
+            'homepage' => $homepage,
         ]);
     }
 

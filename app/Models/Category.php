@@ -12,7 +12,7 @@ class Category extends Model
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'show_on_home' => 'boolean'];
     }
 
     public function products(): HasMany

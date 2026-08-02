@@ -21,6 +21,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
 class CategoryResource extends Resource
@@ -40,10 +41,11 @@ class CategoryResource extends Resource
             TextInput::make('slug')->label('Адреса (slug)')->required()->unique(ignoreRecord: true),
             Textarea::make('description')->label('Опис')->columnSpanFull(),
             FileUpload::make('image_url')->label('Зображення')->image()->directory('categories')->visibility('public'),
-            TextInput::make('position')->label('Порядок')->numeric()->default(0),
+            TextInput::make('position')->label('Порядок')->numeric()->default(0)->helperText('Також можна перетягувати рядки у списку.'),
             TextInput::make('seo_title')->label('SEO-заголовок'),
             Textarea::make('seo_description')->label('SEO-опис'),
             Toggle::make('is_active')->label('Активна')->default(true),
+            Toggle::make('show_on_home')->label('Показувати фотокартку на головній')->helperText('Використовується фото категорії вище.'),
         ]);
     }
 
@@ -51,11 +53,13 @@ class CategoryResource extends Resource
     {
         return $table->columns([
             ImageColumn::make('image_url')->label('Фото'),
-            TextColumn::make('name')->label('Назва')->searchable()->sortable(),
-            TextColumn::make('parent.name')->label('Батьківська'),
+            TextColumn::make('name')->label('Розділ / підрозділ')->searchable()->sortable()
+                ->formatStateUsing(fn (string $state, Category $record): string => $record->parent_id ? '↳ '.$state : $state),
+            TextColumn::make('parent.name')->label('Головний розділ')->placeholder('—'),
             TextColumn::make('position')->label('Порядок')->sortable(),
+            ToggleColumn::make('show_on_home')->label('На головній'),
             IconColumn::make('is_active')->label('Активна')->boolean(),
-        ])->defaultSort('position')->recordActions([EditAction::make()])
+        ])->defaultSort('position')->reorderable('position')->recordActions([EditAction::make()])
             ->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make()])]);
     }
 

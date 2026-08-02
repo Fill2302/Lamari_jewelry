@@ -85,7 +85,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleEscape));
 <template>
   <div ref="ticker" class="ticker" :class="{ 'home-ticker-top': props.homeOverlay }" aria-label="Безкоштовне брендоване пакування">
     <div class="ticker-track">
-      <span v-for="index in 4" :key="index">БЕЗКОШТОВНЕ БРЕНДОВАНЕ ПАКУВАННЯ</span>
+      <span v-for="index in 4" :key="index">{{ page.props.homepage?.ticker_text || 'БЕЗКОШТОВНЕ БРЕНДОВАНЕ ПАКУВАННЯ' }}</span>
     </div>
   </div>
   <div v-if="headerPinned" class="site-header-placeholder" aria-hidden="true"></div>
