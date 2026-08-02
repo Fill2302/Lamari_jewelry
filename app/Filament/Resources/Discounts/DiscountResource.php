@@ -54,12 +54,14 @@ class DiscountResource extends Resource
                 'category' => 'Розділу або підрозділу',
                 'product' => 'Окремого товару',
             ])->default('all')->required()->live(),
-            ViewField::make('category_id')->label('Розділ / підрозділ')
+            ViewField::make('category_ids')->label('Розділи / підрозділи')
                 ->view('filament.forms.components.category-tree')
                 ->viewData(fn (): array => ['categories' => static::categoryTree()])
+                ->dehydrated(false)
                 ->visible(fn (Get $get): bool => $get('scope') === 'category')
                 ->required(fn (Get $get): bool => $get('scope') === 'category'),
-            Select::make('product_id')->label('Товар за артикулом')
+            Select::make('product_ids')->label('Товари за артикулами')
+                ->multiple()
                 ->searchable()
                 ->searchPrompt('Введіть артикул товару')
                 ->noSearchResultsMessage('Товар з таким артикулом не знайдено')
@@ -69,19 +71,34 @@ class DiscountResource extends Resource
                     ->limit(50)
                     ->get()
                     ->mapWithKeys(fn (Product $product): array => [
-                        $product->id => $product->variants->pluck('sku')->join(', '),
+                        $product->id => static::productArticles($product),
                     ])
                     ->all())
-                ->getOptionLabelUsing(fn ($value): ?string => Product::query()
+                ->getOptionLabelsUsing(fn (array $values): array => Product::query()
                     ->with('variants:id,product_id,sku')
-                    ->find($value)?->variants->pluck('sku')->join(', '))
-                ->helperText('Пошук виконується за артикулом, а не за назвою товару.')
+                    ->whereIn('id', $values)
+                    ->get()
+                    ->mapWithKeys(fn (Product $product): array => [
+                        $product->id => static::productArticles($product),
+                    ])
+                    ->all())
+                ->dehydrated(false)
+                ->helperText('Можна знайти й вибрати кілька артикулів. Знижка діятиме на всі довжини кожного товару.')
                 ->visible(fn (Get $get): bool => $get('scope') === 'product')
                 ->required(fn (Get $get): bool => $get('scope') === 'product'),
             DateTimePicker::make('starts_at')->label('Початок дії')->helperText('Залиш порожнім, щоб увімкнути одразу.'),
             DateTimePicker::make('ends_at')->label('Кінець дії')->after('starts_at')->helperText('Залиш порожнім, якщо строк необмежений.'),
             Toggle::make('is_active')->label('Активна')->default(true),
         ]);
+    }
+
+    private static function productArticles(Product $product): string
+    {
+        return $product->variants
+            ->pluck('sku')
+            ->map(fn (string $sku): string => preg_replace('/-\d+(?:[.,]\d+)?$/u', '', $sku) ?: $sku)
+            ->unique()
+            ->join(', ');
     }
 
     private static function categoryTree(): array
@@ -113,8 +130,8 @@ class DiscountResource extends Resource
             TextColumn::make('percentage')->label('Знижка')->suffix('%')->sortable(),
             TextColumn::make('scope')->label('На що діє')->formatStateUsing(fn (Discount $record): string => match ($record->scope) {
                 'all' => 'Увесь каталог',
-                'category' => 'Розділ: '.($record->category?->name ?? 'видалено'),
-                'product' => 'Товар: '.($record->product?->name ?? 'видалено'),
+                'category' => 'Розділів: '.$record->categories()->count(),
+                'product' => 'Товарів: '.$record->products()->count(),
                 default => $record->scope,
             }),
             TextColumn::make('starts_at')->label('Початок')->dateTime('d.m.Y H:i')->placeholder('Одразу'),

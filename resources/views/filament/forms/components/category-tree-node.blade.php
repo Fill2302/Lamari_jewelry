@@ -3,8 +3,8 @@
         <label class="discount-category-tree__label {{ $level ? 'discount-category-tree__label--child' : '' }}">
             <input
                 class="discount-category-tree__radio"
-                type="radio"
-                name="{{ $statePath }}"
+                type="checkbox"
+                name="{{ $statePath }}[]"
                 value="{{ $category['id'] }}"
                 wire:model="{{ $statePath }}"
             >

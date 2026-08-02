@@ -11,8 +11,15 @@ class CreateDiscount extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        if (($data['scope'] ?? 'all') !== 'product') $data['product_id'] = null;
-        if (($data['scope'] ?? 'all') !== 'category') $data['category_id'] = null;
+        $data['product_id'] = null;
+        $data['category_id'] = null;
+
         return $data;
+    }
+
+    protected function afterCreate(): void
+    {
+        $this->record->products()->sync(($this->data['scope'] ?? null) === 'product' ? ($this->data['product_ids'] ?? []) : []);
+        $this->record->categories()->sync(($this->data['scope'] ?? null) === 'category' ? ($this->data['category_ids'] ?? []) : []);
     }
 }

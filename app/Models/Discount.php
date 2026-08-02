@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Discount extends Model
 {
@@ -15,8 +16,25 @@ class Discount extends Model
         return ['is_active' => 'boolean', 'starts_at' => 'datetime', 'ends_at' => 'datetime'];
     }
 
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
-    public function category(): BelongsTo { return $this->belongsTo(Category::class); }
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class);
+    }
+
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class);
+    }
 
     public function scopeCurrentlyActive(Builder $query): Builder
     {

@@ -10,20 +10,25 @@ use Illuminate\Support\Collection;
 class DiscountService
 {
     private ?Collection $discounts = null;
+
     private ?array $categoryParents = null;
 
     public function percentageFor(ProductVariant $variant): int
     {
         $product = $variant->relationLoaded('product') ? $variant->product : $variant->product()->first();
-        if (! $product) return 0;
+        if (! $product) {
+            return 0;
+        }
 
         $categoryIds = $this->categoryLineage((int) $product->category_id);
 
         return (int) $this->activeDiscounts()
             ->filter(fn (Discount $discount): bool => match ($discount->scope) {
                 'all' => true,
-                'product' => (int) $discount->product_id === (int) $product->id,
-                'category' => in_array((int) $discount->category_id, $categoryIds, true),
+                'product' => (int) $discount->product_id === (int) $product->id
+                    || $discount->products->contains('id', $product->id),
+                'category' => in_array((int) $discount->category_id, $categoryIds, true)
+                    || $discount->categories->pluck('id')->intersect($categoryIds)->isNotEmpty(),
                 default => false,
             })
             ->max('percentage');
@@ -39,7 +44,7 @@ class DiscountService
 
     private function activeDiscounts(): Collection
     {
-        return $this->discounts ??= Discount::currentlyActive()->get();
+        return $this->discounts ??= Discount::currentlyActive()->with(['products:id', 'categories:id'])->get();
     }
 
     private function categoryLineage(int $categoryId): array
@@ -50,6 +55,7 @@ class DiscountService
             $ids[] = $categoryId;
             $categoryId = $this->categoryParents[$categoryId] ?? 0;
         }
+
         return $ids;
     }
 }
