@@ -321,6 +321,7 @@ header {
 }
 header.home-overlay-header {
     position: absolute;
+    top: 30px;
     right: 0;
     left: 0;
     border-bottom-color: transparent;
@@ -2400,6 +2401,9 @@ nav {
     text-decoration: underline;
 }
 @media (max-width: 600px) {
+    header.home-overlay-header {
+        top: 28px;
+    }
     .home-campaign {
         /*
          * The transparent header overlays the campaign, so only the ticker
