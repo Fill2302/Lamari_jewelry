@@ -613,13 +613,13 @@ nav {
 }
 .home-campaign-button {
     position: absolute;
-    right: 2.5vw;
-    bottom: 2.5rem;
-    min-width: 130px;
-    padding: 0.5rem 1.25rem;
+    right: 1rem;
+    bottom: 1rem;
+    min-width: 195px;
+    padding: 0.75rem 1.875rem;
     background: #8c5a42;
     color: #fff;
-    font-size: 0.9rem;
+    font-size: 1.35rem;
     line-height: 1.15;
     text-align: center;
     text-transform: uppercase;
@@ -2414,13 +2414,13 @@ nav {
     }
     .home-campaign-button {
         position: absolute;
-        right: 4vw;
-        bottom: 1.5rem;
-        min-width: 110px;
-        padding: 0.4rem 0.9rem;
+        right: 8px;
+        bottom: 8px;
+        min-width: 165px;
+        padding: 0.6rem 1.35rem;
         background: #8c5a42;
         color: #fff;
-        font-size: 0.8rem;
+        font-size: 1.2rem;
         text-align: center;
     }
     .product-catalog {
