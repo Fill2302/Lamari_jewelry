@@ -1,6 +1,20 @@
 @import "tailwindcss";
+@font-face {
+    font-family: "Montserrat";
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url("/fonts/lamari/montserrat-300.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Montserrat";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("/fonts/lamari/montserrat-400.woff2") format("woff2");
+}
 :root {
-    font-family: Inter, system-ui, sans-serif;
+    font-family: "Montserrat", sans-serif;
     color: #201b18;
     background: #fff;
     line-height: 1.55;
@@ -319,7 +333,7 @@ a {
     }
 }
 header {
-    height: 78px;
+    height: 50px;
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
@@ -333,17 +347,20 @@ header {
 }
 .brand {
     display: block;
-    width: 154px;
-    height: 52px;
+    width: 112px;
+    height: 35px;
 }
 .desktop-primary-nav {
     justify-self: center;
     display: flex;
     align-items: center;
-    gap: clamp(1rem, 2vw, 2.3rem);
-    color: #302b28;
-    font-size: 0.78rem;
-    letter-spacing: 0.02em;
+    gap: clamp(1.25rem, 3.65vw, 3.125rem);
+    color: #1b1b1b;
+    font-family: "Montserrat", sans-serif;
+    font-size: 1rem;
+    font-weight: 300;
+    line-height: 1.2;
+    text-transform: uppercase;
     white-space: nowrap;
 }
 .desktop-primary-nav a,
@@ -360,14 +377,18 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: clamp(1.25rem, 2.6vw, 3rem);
-    min-height: 48px;
-    padding: 0 3vw;
+    gap: 0;
+    min-height: 40px;
+    padding: 0 15px;
     overflow-x: auto;
     border-bottom: 1px solid #ddd4c9;
-    background: #fff;
-    color: #302b28;
-    font-size: 0.78rem;
+    background: #3b241b;
+    color: #fff;
+    font-family: "Montserrat", sans-serif;
+    font-size: 0.875rem;
+    font-weight: 300;
+    line-height: 1.2;
+    text-transform: uppercase;
     white-space: nowrap;
     scrollbar-width: none;
 }
@@ -375,7 +396,10 @@ header {
     display: none;
 }
 .desktop-category-nav .sale {
-    color: #b52d1d;
+    color: #fff;
+}
+.desktop-category-nav a {
+    padding: 0 15px;
 }
 .brand img {
     display: block;
@@ -656,7 +680,7 @@ nav {
     position: relative;
     display: block;
     width: 100%;
-    height: calc(100dvh - 156px);
+    height: calc(100dvh - 115px);
     min-height: 520px;
     overflow: hidden;
 }
@@ -675,11 +699,17 @@ nav {
     object-position: center;
 }
 @media (min-width: 900px) {
+    .home-campaign {
+        height: auto;
+        min-height: 0;
+        aspect-ratio: 3200 / 1580;
+    }
     .home-campaign video {
         display: none;
     }
     .home-campaign-desktop {
         display: block;
+        object-position: center top;
     }
 }
 .home-campaign:focus-visible {
