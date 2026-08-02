@@ -46,6 +46,13 @@ const faqs = [
   </Head>
   <StoreLayout home-overlay>
     <Link href="/catalog" class="home-campaign" aria-label="Перейти до каталогу всіх товарів">
+      <img
+        class="home-campaign-desktop"
+        :src="'/images/home/summer-collection-desktop.jpg'"
+        alt="Літня колекція Lamari Jewelry"
+        loading="eager"
+        fetchpriority="high"
+      >
       <video
         :src="'/images/home/hero-video.mp4'"
         :poster="'/images/home/hero-video-first-frame.webp'"
