@@ -45,16 +45,19 @@ const faqs = [
     <meta property="og:title" content="Lamari Jewelry" />
   </Head>
   <StoreLayout>
-    <Link href="/catalog" class="home-campaign" aria-label="Перейти до каталогу всіх товарів">
-      <picture>
-        <source media="(max-width: 600px)" type="image/webp" :srcset="'/images/home/summer-collection-mobile-clean-v3.webp'">
-        <img :src="'/images/home/summer-collection-desktop.jpg'" alt="Summer Collection Lamari">
-      </picture>
-      <span class="mobile-campaign-copy">
-        <strong>SUMMER COLLECTION</strong>
-        <span>Каталог</span>
-      </span>
-    </Link>
+    <section class="home-campaign" aria-label="Summer Collection Lamari">
+      <video
+        :src="'/images/home/hero-video.mp4'"
+        :poster="'/images/home/summer-collection-mobile-clean-v3.webp'"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        aria-hidden="true"
+      ></video>
+      <Link href="/catalog" class="home-campaign-button">Каталог</Link>
+    </section>
 
     <section v-if="newProducts.length" class="home-showcase">
       <div class="home-section-heading"><h2>Новинки</h2><Link href="/catalog?sort=newest">Переглянути всі</Link></div>

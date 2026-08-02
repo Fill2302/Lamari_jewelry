@@ -604,22 +604,30 @@ nav {
     min-height: 520px;
     overflow: hidden;
 }
-.home-campaign picture,
-.home-campaign img {
+.home-campaign video {
     display: block;
     width: 100%;
     height: 100%;
-}
-.home-campaign img {
     object-fit: cover;
     object-position: center;
 }
-.home-campaign:focus-visible {
-    outline: 3px solid #3b241b;
-    outline-offset: -3px;
+.home-campaign-button {
+    position: absolute;
+    right: 2.5vw;
+    bottom: 2.5rem;
+    min-width: 130px;
+    padding: 0.5rem 1.25rem;
+    background: #8c5a42;
+    color: #fff;
+    font-size: 0.9rem;
+    line-height: 1.15;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
-.mobile-campaign-copy {
-    display: none;
+.home-campaign-button:focus-visible {
+    outline: 3px solid #3b241b;
+    outline-offset: 3px;
 }
 .catalog-pagination {
     display: flex;
@@ -2398,36 +2406,22 @@ nav {
         height: calc(100svh - 82px);
         min-height: 0;
     }
-    .home-campaign img {
+    .home-campaign video {
         width: 100%;
         height: 100%;
         object-fit: cover;
         object-position: center;
     }
-    .mobile-campaign-copy {
+    .home-campaign-button {
         position: absolute;
-        right: 5vw;
-        bottom: clamp(8rem, 15vh, 10rem);
-        left: 5vw;
-        display: grid;
-        justify-items: center;
-        gap: 1.4rem;
+        right: 4vw;
+        bottom: 1.5rem;
+        min-width: 110px;
+        padding: 0.4rem 0.9rem;
+        background: #8c5a42;
         color: #fff;
+        font-size: 0.8rem;
         text-align: center;
-    }
-    .mobile-campaign-copy strong {
-        width: 100%;
-        white-space: nowrap;
-        font: 400 clamp(1.65rem, 7.4vw, 2.75rem)/1 Didot, "Times New Roman", serif;
-        letter-spacing: 0.015em;
-    }
-    .mobile-campaign-copy span {
-        min-width: 260px;
-        padding: 0.45rem 2rem;
-        background: rgba(255, 255, 255, 0.94);
-        color: #7b6d67;
-        font-size: 1.55rem;
-        line-height: 1.15;
     }
     .product-catalog {
         grid-template-columns: 1fr;

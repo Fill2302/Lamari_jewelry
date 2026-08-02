@@ -18,11 +18,11 @@ createServer((page) => createInertiaApp({
 	render: renderToString,
 	title: (t) => t ? `${t} · Lamari` : "Lamari",
 	resolve: (n) => resolvePageComponent(`./Pages/${n}.vue`, /* #__PURE__ */ Object.assign({
-		"./Pages/Cart.vue": () => import("./assets/Cart-LmGG40KE.js"),
+		"./Pages/Cart.vue": () => import("./assets/Cart-GkuiCwdz.js"),
 		"./Pages/Category.vue": () => import("./assets/Category-CnWCLwZ7.js"),
 		"./Pages/Checkout.vue": () => import("./assets/Checkout-INwmoDjp.js"),
 		"./Pages/FakePayment.vue": () => import("./assets/FakePayment-3yobppXJ.js"),
-		"./Pages/Home.vue": () => import("./assets/Home-CZKHBL65.js"),
+		"./Pages/Home.vue": () => import("./assets/Home-CWQ0R31-.js"),
 		"./Pages/Information.vue": () => import("./assets/Information-B0DyO3TP.js"),
 		"./Pages/Product.vue": () => import("./assets/Product-CdGAgv25.js"),
 		"./Pages/ThankYou.vue": () => import("./assets/ThankYou-cZsi2OZd.js")
