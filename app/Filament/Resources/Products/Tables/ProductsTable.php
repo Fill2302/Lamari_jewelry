@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products\Tables;
 
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -25,6 +26,16 @@ class ProductsTable
                 TextColumn::make('name')
                     ->label('Товар')
                     ->searchable(),
+                TextColumn::make('article')
+                    ->label('Артикул')
+                    ->getStateUsing(fn ($record): string => $record->variants
+                        ->pluck('sku')
+                        ->map(fn (string $sku): string => preg_replace('/-\d+$/', '', $sku))
+                        ->unique()
+                        ->implode(', '))
+                    ->searchable(query: fn (Builder $query, string $search): Builder => $query
+                        ->whereHas('variants', fn (Builder $variants): Builder => $variants
+                            ->where('sku', 'like', "%{$search}%"))),
                 TextInputColumn::make('catalog_position')
                     ->label('Місце в каталозі')
                     ->type('number')
