@@ -48,7 +48,7 @@ const faqs = [
     <Link href="/catalog" class="home-campaign" aria-label="Перейти до каталогу всіх товарів">
       <video
         :src="'/images/home/hero-video.mp4'"
-        :poster="'/images/home/summer-collection-mobile-clean-v3.webp'"
+        :poster="'/images/home/hero-video-first-frame.webp'"
         autoplay
         muted
         loop
