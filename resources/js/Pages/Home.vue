@@ -44,7 +44,7 @@ const faqs = [
     <link rel="canonical" href="http://localhost" />
     <meta property="og:title" content="Lamari Jewelry" />
   </Head>
-  <StoreLayout home-overlay>
+  <StoreLayout>
     <Link href="/catalog" class="home-campaign" aria-label="Перейти до каталогу всіх товарів">
       <img
         class="home-campaign-desktop"
@@ -94,7 +94,7 @@ const faqs = [
       </Link>
     </section>
 
-    <section class="home-faq">
+    <section id="faq" class="home-faq">
       <h2>Поширені питання</h2>
       <div class="faq-list">
         <article v-for="(faq,index) in faqs" :key="faq.q" :class="{ open: openFaq === index }">

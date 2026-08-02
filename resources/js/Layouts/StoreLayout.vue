@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-const props = withDefaults(defineProps<{ homeOverlay?: boolean }>(), { homeOverlay: false });
 const page = usePage<any>();
 const menuOpen = ref(false);
 const searchOpen = ref(false);
@@ -90,13 +89,19 @@ onUnmounted(() => window.removeEventListener('keydown', handleEscape));
   </div>
   <div v-if="headerPinned" class="site-header-placeholder" aria-hidden="true"></div>
   <header
-    :class="{ 'is-pinned': headerPinned, 'home-overlay-header': props.homeOverlay && !headerPinned }"
+    :class="{ 'is-pinned': headerPinned }"
     :style="headerPinned ? { top: `${headerViewportOffset}px` } : undefined"
   >
-    <button class="menu-trigger desktop-menu-trigger" @click="menuOpen = !menuOpen">Каталог</button>
     <Link href="/" class="brand" aria-label="Lamari Jewelry">
       <img :src="'/images/brand/lamari-logo-hq.png?v=1'" alt="Lamari Jewelry">
     </Link>
+    <nav class="desktop-primary-nav" aria-label="Основна навігація">
+      <Link href="/catalog">Каталог</Link>
+      <Link href="/information/about">Про бренд</Link>
+      <Link href="/information/delivery">Доставка і оплата</Link>
+      <Link href="/#faq">Поширені питання</Link>
+      <Link href="/information/cooperation">Співпраця</Link>
+    </nav>
     <nav class="header-actions">
       <a href="https://www.instagram.com/lamari.jewelry/" target="_blank" aria-label="Instagram" class="header-icon">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
@@ -117,6 +122,15 @@ onUnmounted(() => window.removeEventListener('keydown', handleEscape));
       </button>
     </nav>
   </header>
+
+  <nav class="desktop-category-nav" aria-label="Категорії товарів">
+    <Link
+      v-for="category in page.props.catalogMenu"
+      :key="category.id"
+      :href="`/categories/${category.slug}`"
+      :class="{ sale: category.slug.toLowerCase() === 'sale' }"
+    >{{ category.name }}</Link>
+  </nav>
 
   <div class="search-overlay" :class="{ open: searchOpen }" @click.self="closeSearch">
     <form class="site-search" role="search" @submit.prevent="submitSearch">
