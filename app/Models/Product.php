@@ -40,4 +40,14 @@ class Product extends Model
     {
         return $this->belongsToMany(AttributeValue::class);
     }
+
+    public function relatedProducts(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Product::class,
+            'product_relations',
+            'product_id',
+            'related_product_id'
+        )->withPivot(['type', 'position'])->orderByPivot('position');
+    }
 }

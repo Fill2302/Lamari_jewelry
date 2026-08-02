@@ -260,17 +260,13 @@ class StoreController extends Controller
     {
         $product->load('category.parent', 'variants', 'media');
 
-        $recommendedProducts = Product::where('is_active', true)
-            ->whereKeyNot($product->id)
-            ->where('category_id', '!=', $product->category_id)
+        $recommendedProducts = $product->relatedProducts()
+            ->wherePivot('type', 'complete_look')
+            ->where('products.is_active', true)
             ->whereHas('variants', fn ($variants) => $variants
                 ->where('is_active', true)
                 ->whereColumn('stock_on_hand', '>', 'stock_reserved'))
             ->with(['variants', 'media'])
-            ->orderByRaw("CASE WHEN catalog_badges LIKE '%hit%' THEN 0 ELSE 1 END")
-            ->orderBy('catalog_position')
-            ->orderByDesc('id')
-            ->limit(2)
             ->get();
 
         return Inertia::render('Product', [
