@@ -13,7 +13,13 @@ class StorefrontTest extends TestCase
     public function test_seeded_storefront_and_seo_endpoints_work(): void
     {
         $this->seed();
-        $this->get('/')->assertOk()->assertSee('Home', false);
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Home', false)
+            ->assertInertia(fn ($page) => $page
+                ->has('categories')
+                ->has('newProducts', 1)
+                ->has('hitProducts'));
         $this->get('/categories/necklaces')->assertOk();
         $this->get('/products/crystal-pearl-necklace')
             ->assertOk()

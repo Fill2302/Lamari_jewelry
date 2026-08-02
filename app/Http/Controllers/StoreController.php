@@ -15,7 +15,38 @@ class StoreController extends Controller
 {
     public function home(): Response
     {
-        return Inertia::render('Home', ['categories' => Category::whereNull('parent_id')->where('is_active', true)->with(['products' => fn ($q) => $q->where('is_active', true)->with('variants')->limit(4), 'children'])->get()]);
+        $productRelations = ['variants', 'media'];
+        $newProducts = Product::where('is_active', true)
+            ->with($productRelations)
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get();
+        $hitProducts = Product::where('is_active', true)
+            ->where('catalog_badges', 'like', '%hit%')
+            ->with($productRelations)
+            ->orderBy('catalog_position')
+            ->limit(8)
+            ->get();
+
+        if ($hitProducts->isEmpty()) {
+            $hitProducts = Product::where('is_active', true)
+                ->whereNotIn('id', $newProducts->pluck('id'))
+                ->with($productRelations)
+                ->orderBy('catalog_position')
+                ->limit(8)
+                ->get();
+        }
+
+        return Inertia::render('Home', [
+            'categories' => Category::whereNull('parent_id')
+                ->where('is_active', true)
+                ->with('children')
+                ->orderBy('position')
+                ->get(),
+            'newProducts' => $newProducts,
+            'hitProducts' => $hitProducts,
+        ]);
     }
 
     public function catalog(Request $request): Response
