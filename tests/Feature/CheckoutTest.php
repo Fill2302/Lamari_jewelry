@@ -60,4 +60,33 @@ class CheckoutTest extends TestCase
         $this->assertCount(0, $order->payments);
         $this->assertSame(route('orders.thank-you', $order), $checkout['checkout_url']);
     }
+
+    public function test_mixed_bank_cart_routes_entire_order_to_privatbank(): void
+    {
+        $monoVariant = $this->variant();
+        $monoVariant->product->update(['payment_destination' => 'mono']);
+        $category = Category::create(['name' => 'Necklaces', 'slug' => 'necklaces']);
+        $privatProduct = Product::create([
+            'category_id' => $category->id,
+            'name' => 'Privat item',
+            'slug' => 'privat-item',
+            'description' => 'Test',
+            'payment_destination' => 'privat',
+        ]);
+        $privatVariant = ProductVariant::create([
+            'product_id' => $privatProduct->id,
+            'sku' => 'PRI-1',
+            'name' => 'Default',
+            'price_amount' => 10000,
+            'stock_on_hand' => 2,
+        ]);
+
+        [$order] = $this->app->make(CheckoutService::class)->create(
+            ['customer_name' => 'Filip', 'email' => 'f@example.com', 'phone' => '1', 'shipping_address' => []],
+            [['variant' => $monoVariant, 'quantity' => 1], ['variant' => $privatVariant, 'quantity' => 1]],
+        );
+
+        $this->assertSame('privat', $order->payment_destination);
+        $this->assertSame(['mono', 'privat'], $order->items->pluck('payment_destination')->all());
+    }
 }

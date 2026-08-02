@@ -20,6 +20,14 @@ class OrdersTable
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('merchantAccount.code')->label('Магазин'),
+                TextColumn::make('payment_destination')
+                    ->label('Банк оплати')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'mono' => 'monobank',
+                        'privat' => 'ПриватБанк',
+                        default => 'Не визначено',
+                    }),
                 TextColumn::make('legal_entity_id')
                     ->label('ID юридичної особи')
                     ->numeric()

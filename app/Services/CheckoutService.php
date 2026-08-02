@@ -43,12 +43,18 @@ class CheckoutService
                 return [$variant, $quantity, $itemTotal];
             })->all();
             $total = collect($resolved)->sum(fn (array $item): int => $item[2]);
+            $destinations = collect($resolved)
+                ->map(fn (array $item): string => $item[0]->product->payment_destination ?? 'unassigned')
+                ->unique();
+            $paymentDestination = $destinations->contains('privat')
+                ? 'privat'
+                : ($destinations->contains('mono') ? 'mono' : 'unassigned');
             $merchant = $this->selector->select($total);
             $cashOnDelivery = $paymentMethod === 'cash_on_delivery';
-            $order = Order::create([...$customer, 'number' => 'LAM-'.now()->format('ymd').'-'.strtoupper(Str::random(6)), 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'payment_method' => $paymentMethod, 'status' => $cashOnDelivery ? 'confirmed' : 'pending_payment', 'payment_status' => $cashOnDelivery ? 'cash_on_delivery' : 'pending', 'subtotal_amount' => $total, 'total_amount' => $total, 'currency' => 'UAH']);
+            $order = Order::create([...$customer, 'number' => 'LAM-'.now()->format('ymd').'-'.strtoupper(Str::random(6)), 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'payment_method' => $paymentMethod, 'payment_destination' => $paymentDestination, 'status' => $cashOnDelivery ? 'confirmed' : 'pending_payment', 'payment_status' => $cashOnDelivery ? 'cash_on_delivery' : 'pending', 'subtotal_amount' => $total, 'total_amount' => $total, 'currency' => 'UAH']);
             foreach ($resolved as [$v,$q,$itemTotal]) {
                 $price = (int) round($itemTotal / $q);
-                $order->items()->create(['product_variant_id' => $v->id, 'sku' => $v->sku, 'name' => $v->product->name.' — '.$v->name, 'quantity' => $q, 'unit_price_amount' => $price, 'total_amount' => $itemTotal]);
+                $order->items()->create(['product_variant_id' => $v->id, 'sku' => $v->sku, 'name' => $v->product->name.' — '.$v->name, 'payment_destination' => $v->product->payment_destination ?? 'unassigned', 'quantity' => $q, 'unit_price_amount' => $price, 'total_amount' => $itemTotal]);
             }
 
             if ($cashOnDelivery) {
