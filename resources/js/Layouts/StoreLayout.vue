@@ -2,7 +2,7 @@
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 const page = usePage<any>();
-const isHome = computed(() => page.url === '/' || page.url.startsWith('/?'));
+const isHome = computed(() => page.component === 'Home');
 const menuOpen = ref(false);
 const searchOpen = ref(false);
 const searchQuery = ref('');
