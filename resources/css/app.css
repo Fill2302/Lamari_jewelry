@@ -319,6 +319,23 @@ header {
     z-index: 20;
     backdrop-filter: blur(12px);
 }
+header.home-overlay-header {
+    position: absolute;
+    right: 0;
+    left: 0;
+    border-bottom-color: transparent;
+    background: transparent;
+    color: #fff;
+    backdrop-filter: none;
+    text-shadow: 0 1px 12px rgb(0 0 0 / 0.35);
+}
+header.home-overlay-header .brand img {
+    filter: brightness(0) invert(1) drop-shadow(0 1px 8px rgb(0 0 0 / 0.3));
+}
+header.home-overlay-header .header-icon {
+    color: #fff;
+    filter: drop-shadow(0 1px 6px rgb(0 0 0 / 0.35));
+}
 .brand {
     display: block;
     width: 154px;
@@ -600,7 +617,7 @@ nav {
     position: relative;
     display: block;
     width: 100%;
-    height: calc(100dvh - 108px);
+    height: calc(100dvh - 30px);
     min-height: 520px;
     overflow: hidden;
 }
@@ -2385,11 +2402,10 @@ nav {
 @media (max-width: 600px) {
     .home-campaign {
         /*
-         * The ticker and header already occupy 82px in normal flow. Keep the
-         * campaign inside the remainder of the first mobile viewport so the
-         * image ends before the next section starts.
+         * The transparent header overlays the campaign, so only the ticker
+         * occupies space above it in the first mobile viewport.
          */
-        height: calc(100svh - 82px);
+        height: calc(100svh - 28px);
         min-height: 0;
     }
     .home-campaign video {

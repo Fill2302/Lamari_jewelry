@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 const page = usePage<any>();
+const isHome = computed(() => page.url === '/' || page.url.startsWith('/?'));
 const menuOpen = ref(false);
 const searchOpen = ref(false);
 const searchQuery = ref('');
@@ -89,7 +90,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleEscape));
   </div>
   <div v-if="headerPinned" class="site-header-placeholder" aria-hidden="true"></div>
   <header
-    :class="{ 'is-pinned': headerPinned }"
+    :class="{ 'is-pinned': headerPinned, 'home-overlay-header': isHome && !headerPinned }"
     :style="headerPinned ? { top: `${headerViewportOffset}px` } : undefined"
   >
     <button class="menu-trigger desktop-menu-trigger" @click="menuOpen = !menuOpen">Каталог</button>
