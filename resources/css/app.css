@@ -704,13 +704,16 @@ nav {
     .home-campaign {
         height: auto;
         min-height: 0;
-        aspect-ratio: 3200 / 1580;
+        aspect-ratio: auto;
+        overflow: visible;
     }
     .home-campaign video {
         display: none;
     }
     .home-campaign-desktop {
         display: block;
+        height: auto;
+        object-fit: contain;
         object-position: center top;
     }
 }

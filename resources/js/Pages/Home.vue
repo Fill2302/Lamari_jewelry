@@ -48,7 +48,7 @@ const faqs = [
     <Link href="/catalog" class="home-campaign" aria-label="Перейти до каталогу всіх товарів">
       <img
         class="home-campaign-desktop"
-        :src="'/images/home/summer-collection-desktop.jpg'"
+        :src="'/images/home/summer-collection-desktop.jpg?v=2'"
         alt="Літня колекція Lamari Jewelry"
         loading="eager"
         fetchpriority="high"
