@@ -342,6 +342,22 @@ header.home-overlay-header {
     backdrop-filter: none;
     text-shadow: 0 1px 12px rgb(0 0 0 / 0.35);
 }
+@media (min-width: 801px) {
+    header.home-overlay-header {
+        grid-template-columns: auto 1fr;
+    }
+    header.home-overlay-header .desktop-menu-trigger {
+        display: none;
+    }
+    header.home-overlay-header .brand {
+        grid-column: 1;
+        justify-self: start;
+    }
+    header.home-overlay-header .header-actions {
+        grid-column: 2;
+        justify-self: end;
+    }
+}
 header.home-overlay-header .brand img {
     filter: brightness(0) invert(1) drop-shadow(0 1px 8px rgb(0 0 0 / 0.3));
 }
