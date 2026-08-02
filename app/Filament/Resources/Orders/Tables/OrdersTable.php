@@ -36,6 +36,17 @@ class OrdersTable
                 TextColumn::make('last_name')
                     ->label('Прізвище')
                     ->searchable(),
+                TextColumn::make('marketing_attribution.last_touch.utm_source')
+                    ->label('UTM джерело')
+                    ->placeholder('Прямий перехід')
+                    ->toggleable(),
+                TextColumn::make('marketing_attribution.last_touch.utm_campaign')
+                    ->label('UTM кампанія')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('marketing_attribution.last_touch.gclid')
+                    ->label('Google Click ID')
+                    ->limit(18)
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')
                     ->label('Статус замовлення')
                     ->formatStateUsing(fn (string $state): string => match ($state) {

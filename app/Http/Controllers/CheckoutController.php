@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\CartService;
 use App\Services\CheckoutService;
 use App\Services\NovaPoshtaService;
+use App\Services\MarketingAttribution;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -21,7 +22,7 @@ class CheckoutController extends Controller
         return Inertia::render('Checkout', ['items' => $items, 'total' => collect($items)->sum('total')]);
     }
 
-    public function store(Request $r, CartService $cart, CheckoutService $checkout, NovaPoshtaService $novaPoshta): RedirectResponse
+    public function store(Request $r, CartService $cart, CheckoutService $checkout, NovaPoshtaService $novaPoshta, MarketingAttribution $attribution): RedirectResponse
     {
         $phoneDigits = preg_replace('/\D+/', '', (string) $r->input('phone'));
 
@@ -72,6 +73,7 @@ class CheckoutController extends Controller
                 'address' => $warehouse['name'],
                 'warehouse_ref' => $warehouse['ref'],
             ],
+            'marketing_attribution' => $attribution->from($r),
         ], $cart->items(), $d['payment_method']);
         $cart->clear();
 

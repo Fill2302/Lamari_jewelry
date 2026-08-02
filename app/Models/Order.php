@@ -12,7 +12,10 @@ class Order extends Model
 
     protected function casts(): array
     {
-        return ['shipping_address' => 'array'];
+        return [
+            'shipping_address' => 'array',
+            'marketing_attribution' => 'array',
+        ];
     }
 
     public function items(): HasMany

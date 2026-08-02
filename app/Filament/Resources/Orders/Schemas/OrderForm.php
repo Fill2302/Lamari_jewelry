@@ -45,6 +45,14 @@ class OrderForm
                     ->label('Адреса доставки')
                     ->required()
                     ->columnSpanFull(),
+                Textarea::make('marketing_attribution')
+                    ->label('Джерело / UTM / Google Ads click ID')
+                    ->formatStateUsing(fn ($state) => is_array($state)
+                        ? json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                        : $state)
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->columnSpanFull(),
                 TextInput::make('status')
                     ->label('Статус замовлення')
                     ->required()
