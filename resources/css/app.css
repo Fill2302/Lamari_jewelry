@@ -318,7 +318,7 @@ a {
 .ticker-track {
     display: flex;
     width: max-content;
-    animation: ticker-scroll 15s linear 1s infinite;
+    animation: ticker-scroll 28s linear infinite;
 }
 .ticker-track span {
     display: block;
@@ -328,8 +328,11 @@ a {
     display: none;
 }
 @keyframes ticker-scroll {
+    from {
+        transform: translateX(100vw);
+    }
     to {
-        transform: translateX(-25%);
+        transform: translateX(-100%);
     }
 }
 @media (prefers-reduced-motion: reduce) {
