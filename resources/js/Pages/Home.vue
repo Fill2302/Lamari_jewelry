@@ -65,6 +65,12 @@ const faqs = [
       ></video>
     </Link>
 
+    <div class="ticker desktop-home-ticker" aria-label="Безкоштовне брендоване пакування">
+      <div class="ticker-track">
+        <span v-for="index in 4" :key="index">БЕЗКОШТОВНЕ БРЕНДОВАНЕ ПАКУВАННЯ</span>
+      </div>
+    </div>
+
     <section v-if="newProducts.length" class="home-showcase">
       <div class="home-section-heading"><h2>Новинки</h2><Link href="/catalog?sort=newest">Переглянути всі</Link></div>
       <div class="home-products">

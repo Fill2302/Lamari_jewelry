@@ -324,6 +324,9 @@ a {
     display: block;
     padding-right: 5rem;
 }
+.desktop-home-ticker {
+    display: none;
+}
 @keyframes ticker-scroll {
     to {
         transform: translateX(-25%);
@@ -701,6 +704,19 @@ nav {
     object-position: center;
 }
 @media (min-width: 900px) {
+    .home-ticker-top {
+        display: none;
+    }
+    .desktop-home-ticker {
+        display: block;
+    }
+    header:has(+ .desktop-category-nav) {
+        padding-left: 2vw;
+    }
+    header:has(+ .desktop-category-nav) .brand {
+        width: 134px;
+        height: 42px;
+    }
     .home-campaign {
         height: auto;
         min-height: 0;

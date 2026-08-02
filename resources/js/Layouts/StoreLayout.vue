@@ -83,7 +83,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleEscape));
 </script>
 
 <template>
-  <div ref="ticker" class="ticker" aria-label="Безкоштовне брендоване пакування">
+  <div ref="ticker" class="ticker" :class="{ 'home-ticker-top': props.homeOverlay }" aria-label="Безкоштовне брендоване пакування">
     <div class="ticker-track">
       <span v-for="index in 4" :key="index">БЕЗКОШТОВНЕ БРЕНДОВАНЕ ПАКУВАННЯ</span>
     </div>
