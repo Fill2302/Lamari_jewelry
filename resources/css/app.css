@@ -14,7 +14,7 @@
     src: url("/fonts/lamari/montserrat-400.woff2") format("woff2");
 }
 :root {
-    font-family: "Montserrat", sans-serif;
+    font-family: Inter, system-ui, sans-serif;
     color: #201b18;
     background: #fff;
     line-height: 1.55;
@@ -312,11 +312,13 @@ a {
     font-size: 0.64rem;
     letter-spacing: 0.17em;
     white-space: nowrap;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 300;
 }
 .ticker-track {
     display: flex;
     width: max-content;
-    animation: ticker-scroll 15s linear infinite;
+    animation: ticker-scroll 15s linear 1s infinite;
 }
 .ticker-track span {
     display: block;
