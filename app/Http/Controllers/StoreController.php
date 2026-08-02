@@ -260,6 +260,22 @@ class StoreController extends Controller
     {
         $product->load('category.parent', 'variants', 'media');
 
-        return Inertia::render('Product', ['product' => $product]);
+        $recommendedProducts = Product::where('is_active', true)
+            ->whereKeyNot($product->id)
+            ->where('category_id', '!=', $product->category_id)
+            ->whereHas('variants', fn ($variants) => $variants
+                ->where('is_active', true)
+                ->whereColumn('stock_on_hand', '>', 'stock_reserved'))
+            ->with(['variants', 'media'])
+            ->orderByRaw("CASE WHEN catalog_badges LIKE '%hit%' THEN 0 ELSE 1 END")
+            ->orderBy('catalog_position')
+            ->orderByDesc('id')
+            ->limit(2)
+            ->get();
+
+        return Inertia::render('Product', [
+            'product' => $product,
+            'recommendedProducts' => $recommendedProducts,
+        ]);
     }
 }

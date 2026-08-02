@@ -1362,6 +1362,81 @@ nav {
     content: "✓ ";
     color: #526b54;
 }
+.complete-look {
+    margin: 2rem 0;
+}
+.complete-look h2 {
+    margin: 0 0 1.25rem;
+    font: 400 clamp(1.35rem, 2.4vw, 2rem)/1 Georgia, serif;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+.complete-look-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+.complete-look-card {
+    min-width: 0;
+}
+.complete-look-image {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: #f3eee9;
+}
+.complete-look-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.complete-look-image button {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    width: 28px;
+    height: 28px;
+    padding: 2px;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    filter: drop-shadow(0 1px 4px rgb(0 0 0 / 0.35));
+}
+.complete-look-image svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+}
+.complete-look-image button.active svg {
+    fill: currentColor;
+}
+.complete-look-name {
+    display: block;
+    margin-top: 0.65rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.85rem;
+}
+.complete-look-card p {
+    margin: 0.35rem 0 0.75rem;
+    color: #655d57;
+    font-size: 0.85rem;
+}
+.complete-look-add {
+    width: 100%;
+    padding: 0.7rem 0.35rem;
+    border: 0;
+    background: #b59b87;
+    color: #fff;
+    font: inherit;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    cursor: pointer;
+}
 .buy-panel details {
     border-top: 1px solid #d6cdc4;
     padding: 1rem 0;

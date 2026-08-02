@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
-import { Head, useForm, Link } from '@inertiajs/vue3';
+import { Head, useForm, Link, router } from '@inertiajs/vue3';
 import StoreLayout from '../Layouts/StoreLayout.vue';
-const p = defineProps<{ product: any }>();
+const p = defineProps<{ product: any, recommendedProducts: any[] }>();
 const selected = ref(p.product.variants[0]?.id);
 const form = useForm({ quantity: 1 });
 const add = () => form.post(`/cart/${selected.value}`, { preserveScroll: true });
@@ -18,15 +18,22 @@ const carouselMedia = computed(() => media.value.length > 1
 const gallery = ref<HTMLElement | null>(null);
 const buyButton = ref<HTMLElement | null>(null);
 const showStickyBuy = ref(false);
-const isFavorite = ref(false);
-const toggleFavorite = () => {
-  const favorites: number[] = JSON.parse(localStorage.getItem('lamari-favorites') || '[]');
-  const next = favorites.includes(p.product.id)
-    ? favorites.filter(id => id !== p.product.id)
-    : [...favorites, p.product.id];
+const favorites = ref<number[]>([]);
+const isFavorite = computed(() => favorites.value.includes(p.product.id));
+const toggleFavorite = (productId = p.product.id) => {
+  const next = favorites.value.includes(productId)
+    ? favorites.value.filter(id => id !== productId)
+    : [...favorites.value, productId];
   localStorage.setItem('lamari-favorites', JSON.stringify(next));
-  isFavorite.value = next.includes(p.product.id);
+  favorites.value = next;
   window.dispatchEvent(new Event('lamari-favorites'));
+};
+const relatedImage = (product: any) => asset(product.media?.find((item: any) => item.type === 'image')?.url || product.image_url);
+const relatedVariant = (product: any) => product.variants?.find((variant: any) => variant.is_active && variant.stock_on_hand > variant.stock_reserved);
+const relatedPrice = (product: any) => relatedVariant(product)?.effective_price_amount ?? relatedVariant(product)?.price_amount ?? 0;
+const addRelated = (product: any) => {
+  const variant = relatedVariant(product);
+  if (variant) router.post(`/cart/${variant.id}`, { quantity: 1 }, { preserveScroll: true });
 };
 const activeMedia = ref(0);
 const zoomKey = ref<string | null>(null);
@@ -126,9 +133,9 @@ const updateStickyBuy = () => {
 };
 onMounted(() => {
   try {
-    isFavorite.value = JSON.parse(localStorage.getItem('lamari-favorites') || '[]').includes(p.product.id);
+    favorites.value = JSON.parse(localStorage.getItem('lamari-favorites') || '[]');
   } catch {
-    isFavorite.value = false;
+    favorites.value = [];
   }
   nextTick(() => {
     if (media.value.length > 1) scrollToPhysical(1);
@@ -204,7 +211,7 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
         </template>
       </div>
       <aside class="buy-panel">
-        <button class="product-favorite" :class="{ active: isFavorite }" :aria-label="isFavorite ? 'Видалити з обраного' : 'Додати в обране'" @click="toggleFavorite">
+        <button class="product-favorite" :class="{ active: isFavorite }" :aria-label="isFavorite ? 'Видалити з обраного' : 'Додати в обране'" @click="toggleFavorite()">
           <svg viewBox="0 0 24 24"><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>
         </button>
         <h1>{{ product.name }}</h1>
@@ -218,6 +225,22 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
         </label>
         <button ref="buyButton" class="button buy" @click="add" :disabled="form.processing || !selected">Додати в кошик</button>
         <div class="product-benefits"><span>Безкоштовне брендоване пакування</span><span>Відправлення 1–2 робочі дні</span></div>
+        <section v-if="recommendedProducts.length" class="complete-look" aria-labelledby="complete-look-title">
+          <h2 id="complete-look-title">Доповнити образ</h2>
+          <div class="complete-look-grid">
+            <article v-for="item in recommendedProducts" :key="item.id" class="complete-look-card">
+              <div class="complete-look-image">
+                <Link :href="`/products/${item.slug}`"><img :src="relatedImage(item)" :alt="item.name" loading="lazy"></Link>
+                <button type="button" :class="{ active: favorites.includes(item.id) }" :aria-label="favorites.includes(item.id) ? 'Видалити з обраного' : 'Додати в обране'" @click="toggleFavorite(item.id)">
+                  <svg viewBox="0 0 24 24"><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>
+                </button>
+              </div>
+              <Link :href="`/products/${item.slug}`" class="complete-look-name">{{ item.name }}</Link>
+              <p>{{ (relatedPrice(item) / 100).toLocaleString('uk-UA') }} ₴</p>
+              <button type="button" class="complete-look-add" :disabled="!relatedVariant(item)" @click="addRelated(item)">Додати в кошик</button>
+            </article>
+          </div>
+        </section>
         <details open><summary>Характеристики</summary><dl><template v-for="(value,key) in product.characteristics"><dt>{{ key }}</dt><dd>{{ value }}</dd></template><dt>Матеріал</dt><dd>{{ product.material }}</dd></dl></details>
         <details><summary>Опис товару</summary><p>{{ product.description }}</p></details>
         <details><summary>Упаковка</summary><p>{{ product.packaging_text }}</p></details>
