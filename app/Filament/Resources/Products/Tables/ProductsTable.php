@@ -4,13 +4,17 @@ namespace App\Filament\Resources\Products\Tables;
 
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\BulkAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\TextInputColumn;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Forms\Components\Select;
+use Illuminate\Support\Collection;
 use Filament\Tables\Table;
 
 class ProductsTable
@@ -36,6 +40,13 @@ class ProductsTable
                     ->searchable(query: fn (Builder $query, string $search): Builder => $query
                         ->whereHas('variants', fn (Builder $variants): Builder => $variants
                             ->where('sku', 'like', "%{$search}%"))),
+                SelectColumn::make('payment_destination')
+                    ->label('Банк оплати')
+                    ->options([
+                        'unassigned' => 'Не визначено',
+                        'mono' => 'monobank',
+                        'privat' => 'ПриватБанк',
+                    ]),
                 TextInputColumn::make('catalog_position')
                     ->label('Місце в каталозі')
                     ->type('number')
@@ -76,12 +87,35 @@ class ProductsTable
                     ->relationship('category', 'name')
                     ->searchable()
                     ->preload(),
+                SelectFilter::make('payment_destination')
+                    ->label('Банк оплати')
+                    ->options([
+                        'unassigned' => 'Не визначено',
+                        'mono' => 'monobank',
+                        'privat' => 'ПриватБанк',
+                    ]),
             ])
             ->recordActions([
                 EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    BulkAction::make('setPaymentDestination')
+                        ->label('Змінити банк оплати')
+                        ->schema([
+                            Select::make('payment_destination')
+                                ->label('Банк для онлайн-оплати')
+                                ->options([
+                                    'unassigned' => 'Ще не визначено',
+                                    'mono' => 'monobank',
+                                    'privat' => 'ПриватБанк',
+                                ])
+                                ->required(),
+                        ])
+                        ->action(fn (Collection $records, array $data) => $records->each->update([
+                            'payment_destination' => $data['payment_destination'],
+                        ]))
+                        ->deselectRecordsAfterCompletion(),
                     DeleteBulkAction::make(),
                 ]),
             ]);

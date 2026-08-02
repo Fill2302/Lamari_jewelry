@@ -24,6 +24,16 @@ class ProductForm
                     ->label('Категорія / підкатегорія')
                     ->relationship('category', 'name')
                     ->required(),
+                Select::make('payment_destination')
+                    ->label('Банк для онлайн-оплати')
+                    ->options([
+                        'unassigned' => 'Ще не визначено',
+                        'mono' => 'monobank',
+                        'privat' => 'ПриватБанк',
+                    ])
+                    ->default('unassigned')
+                    ->helperText('Визначає, на який платіжний акаунт буде направлене онлайн-замовлення з цим товаром.')
+                    ->required(),
                 TextInput::make('catalog_position')
                     ->label('Місце в загальному каталозі')
                     ->helperText('1 — перший товар, 2 — другий і так далі.')
