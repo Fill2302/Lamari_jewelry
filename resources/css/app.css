@@ -82,9 +82,12 @@ body {
     background: #d9a900;
 }
 .home-product-card h3 {
-    min-height: 2.7em;
+    min-width: 0;
     margin: 0.9rem 0 0;
-    font: 400 1.1rem/1.35 Inter, sans-serif;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 400 0.85rem/1.35 Inter, sans-serif;
 }
 .home-product-card p {
     display: flex;
@@ -1087,16 +1090,11 @@ nav {
     display: block;
 }
 .catalog-card h3 {
-    font:
-        400 1.15rem Georgia,
-        serif;
-    display: -webkit-box;
+    min-width: 0;
     overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    min-height: 2.5em;
-    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 400 0.85rem/1.35 Inter, sans-serif;
 }
 .catalog-card small {
     color: #786f68;
@@ -2520,7 +2518,7 @@ nav {
     .catalog-card h3 {
         margin-top: 0.7rem;
         min-height: auto;
-        font-size: 1.05rem;
+        font-size: 0.78rem;
     }
     .catalog-card p {
         margin-top: 0.45rem;
