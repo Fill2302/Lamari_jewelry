@@ -45,7 +45,7 @@ const faqs = [
     <meta property="og:title" content="Lamari Jewelry" />
   </Head>
   <StoreLayout>
-    <section class="home-campaign" aria-label="Summer Collection Lamari">
+    <Link href="/catalog" class="home-campaign" aria-label="Перейти до каталогу всіх товарів">
       <video
         :src="'/images/home/hero-video.mp4'"
         :poster="'/images/home/summer-collection-mobile-clean-v3.webp'"
@@ -56,8 +56,7 @@ const faqs = [
         preload="metadata"
         aria-hidden="true"
       ></video>
-      <Link href="/catalog" class="home-campaign-button">Каталог</Link>
-    </section>
+    </Link>
 
     <section v-if="newProducts.length" class="home-showcase">
       <div class="home-section-heading"><h2>Новинки</h2><Link href="/catalog?sort=newest">Переглянути всі</Link></div>
