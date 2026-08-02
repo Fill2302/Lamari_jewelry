@@ -13,7 +13,12 @@ class Discount extends Model
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean', 'starts_at' => 'datetime', 'ends_at' => 'datetime'];
+        return [
+            'is_active' => 'boolean',
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
+            'quantity_rules' => 'array',
+        ];
     }
 
     public function product(): BelongsTo

@@ -55,11 +55,19 @@ class CartService
     public function items(): array
     {
         $c = $this->session->get('cart', []);
+        $variants = ProductVariant::with('product.media', 'product.variants')->whereIn('id', array_keys($c))->get();
+        $percentages = app(DiscountService::class)->percentagesForCart(
+            $variants,
+            collect($c)->mapWithKeys(fn (array $item, int|string $id): array => [(int) $id => (int) $item['quantity']])->all(),
+        );
 
-        return ProductVariant::with('product.media', 'product.variants')->whereIn('id', array_keys($c))->get()->map(function ($variant) use ($c) {
+        return $variants->map(function ($variant) use ($c, $percentages) {
             $quantity = $c[$variant->id]['quantity'];
             $originalTotal = $variant->original_price_amount * $quantity;
-            $total = $variant->effective_price_amount * $quantity;
+            $unitPercentages = $percentages[$variant->id] ?? array_fill(0, $quantity, 0);
+            $total = collect($unitPercentages)->sum(
+                fn (int $percentage): int => (int) round($variant->original_price_amount * (100 - $percentage) / 100),
+            );
 
             return [
                 'variant' => $variant,
@@ -67,6 +75,7 @@ class CartService
                 'original_total' => $originalTotal,
                 'discount_total' => $originalTotal - $total,
                 'total' => $total,
+                'discount_percentage' => count(array_unique($unitPercentages)) === 1 ? ($unitPercentages[0] ?? 0) : null,
             ];
         })->all();
     }

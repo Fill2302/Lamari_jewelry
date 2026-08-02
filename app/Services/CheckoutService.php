@@ -6,6 +6,7 @@ use App\Contracts\Payments\PaymentProvider;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\ProductVariant;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -20,7 +21,6 @@ class CheckoutService
             if (! $cart) {
                 throw new RuntimeException('Cart is empty.');
             }$resolved = [];
-            $total = 0;
             foreach ($cart as $item) {
                 $v = ProductVariant::with('product')->lockForUpdate()->findOrFail($item['variant']->id);
                 $q = (int) $item['quantity'];
@@ -28,13 +28,27 @@ class CheckoutService
                     throw new RuntimeException("Insufficient stock for {$v->sku}.");
                 }$v->increment('stock_reserved', $q);
                 $resolved[] = [$v, $q];
-                $total += $v->effective_price_amount * $q;
-            }$merchant = $this->selector->select($total);
+            }
+
+            /** @var Collection<int, ProductVariant> $variants */
+            $variants = collect($resolved)->map(fn (array $item): ProductVariant => $item[0]);
+            $quantities = collect($resolved)->mapWithKeys(fn (array $item): array => [$item[0]->id => $item[1]])->all();
+            $percentages = app(DiscountService::class)->percentagesForCart($variants, $quantities);
+            $resolved = collect($resolved)->map(function (array $item) use ($percentages): array {
+                [$variant, $quantity] = $item;
+                $itemTotal = collect($percentages[$variant->id] ?? array_fill(0, $quantity, 0))->sum(
+                    fn (int $percentage): int => (int) round($variant->original_price_amount * (100 - $percentage) / 100),
+                );
+
+                return [$variant, $quantity, $itemTotal];
+            })->all();
+            $total = collect($resolved)->sum(fn (array $item): int => $item[2]);
+            $merchant = $this->selector->select($total);
             $cashOnDelivery = $paymentMethod === 'cash_on_delivery';
             $order = Order::create([...$customer, 'number' => 'LAM-'.now()->format('ymd').'-'.strtoupper(Str::random(6)), 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'payment_method' => $paymentMethod, 'status' => $cashOnDelivery ? 'confirmed' : 'pending_payment', 'payment_status' => $cashOnDelivery ? 'cash_on_delivery' : 'pending', 'subtotal_amount' => $total, 'total_amount' => $total, 'currency' => 'UAH']);
-            foreach ($resolved as [$v,$q]) {
-                $price = $v->effective_price_amount;
-                $order->items()->create(['product_variant_id' => $v->id, 'sku' => $v->sku, 'name' => $v->product->name.' — '.$v->name, 'quantity' => $q, 'unit_price_amount' => $price, 'total_amount' => $price * $q]);
+            foreach ($resolved as [$v,$q,$itemTotal]) {
+                $price = (int) round($itemTotal / $q);
+                $order->items()->create(['product_variant_id' => $v->id, 'sku' => $v->sku, 'name' => $v->product->name.' — '.$v->name, 'quantity' => $q, 'unit_price_amount' => $price, 'total_amount' => $itemTotal]);
             }
 
             if ($cashOnDelivery) {

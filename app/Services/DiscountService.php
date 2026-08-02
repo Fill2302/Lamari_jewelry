@@ -20,18 +20,61 @@ class DiscountService
             return 0;
         }
 
-        $categoryIds = $this->categoryLineage((int) $product->category_id);
-
         return (int) $this->activeDiscounts()
-            ->filter(fn (Discount $discount): bool => match ($discount->scope) {
-                'all' => true,
-                'product' => (int) $discount->product_id === (int) $product->id
-                    || $discount->products->contains('id', $product->id),
-                'category' => in_array((int) $discount->category_id, $categoryIds, true)
-                    || $discount->categories->pluck('id')->intersect($categoryIds)->isNotEmpty(),
-                default => false,
-            })
+            ->where('mode', 'standard')
+            ->filter(fn (Discount $discount): bool => $this->matches($discount, $variant))
             ->max('percentage');
+    }
+
+    /** @param Collection<int, ProductVariant> $variants */
+    public function percentagesForCart(Collection $variants, array $quantities): array
+    {
+        $units = $variants->flatMap(function (ProductVariant $variant) use ($quantities): array {
+            return array_fill(0, (int) ($quantities[$variant->id] ?? 0), [
+                'variant_id' => $variant->id,
+                'price' => (int) $variant->getRawOriginal('price_amount'),
+            ]);
+        })->values();
+
+        $percentages = $units->map(function (array $unit) use ($variants): int {
+            $variant = $variants->firstWhere('id', $unit['variant_id']);
+
+            return $variant ? $this->percentageFor($variant) : 0;
+        })->all();
+
+        foreach ($this->activeDiscounts()->where('mode', 'quantity') as $discount) {
+            $eligibleIndexes = $units
+                ->keys()
+                ->filter(fn (int $index): bool => ($variant = $variants->firstWhere('id', $units[$index]['variant_id']))
+                    && $this->matches($discount, $variant))
+                ->sortBy(fn (int $index): int => $units[$index]['price'])
+                ->values();
+
+            $rule = collect($discount->quantity_rules ?? [])
+                ->filter(fn (array $rule): bool => (int) ($rule['min_quantity'] ?? 0) <= $eligibleIndexes->count())
+                ->sortByDesc(fn (array $rule): int => (int) $rule['min_quantity'])
+                ->first();
+
+            if (! $rule) {
+                continue;
+            }
+
+            $percentage = (int) ($rule['percentage'] ?? 0);
+            $targets = ($rule['apply_to'] ?? 'all') === 'position'
+                ? $eligibleIndexes->slice(max(0, (int) ($rule['position'] ?? 1) - 1), 1)
+                : $eligibleIndexes;
+
+            foreach ($targets as $index) {
+                $percentages[$index] = max($percentages[$index], $percentage);
+            }
+        }
+
+        $result = [];
+        foreach ($units as $index => $unit) {
+            $result[$unit['variant_id']][] = $percentages[$index];
+        }
+
+        return $result;
     }
 
     public function priceFor(ProductVariant $variant): int
@@ -45,6 +88,25 @@ class DiscountService
     private function activeDiscounts(): Collection
     {
         return $this->discounts ??= Discount::currentlyActive()->with(['products:id', 'categories:id'])->get();
+    }
+
+    private function matches(Discount $discount, ProductVariant $variant): bool
+    {
+        $product = $variant->relationLoaded('product') ? $variant->product : $variant->product()->first();
+        if (! $product) {
+            return false;
+        }
+
+        $categoryIds = $this->categoryLineage((int) $product->category_id);
+
+        return match ($discount->scope) {
+            'all' => true,
+            'product' => (int) $discount->product_id === (int) $product->id
+                || $discount->products->contains('id', $product->id),
+            'category' => in_array((int) $discount->category_id, $categoryIds, true)
+                || $discount->categories->pluck('id')->intersect($categoryIds)->isNotEmpty(),
+            default => false,
+        };
     }
 
     private function categoryLineage(int $categoryId): array

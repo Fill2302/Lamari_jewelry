@@ -27,6 +27,8 @@ class EditDiscount extends EditRecord
     {
         $data['product_id'] = null;
         $data['category_id'] = null;
+        $data['percentage'] = ($data['mode'] ?? 'standard') === 'quantity' ? 0 : $data['percentage'];
+        $data['quantity_rules'] = ($data['mode'] ?? 'standard') === 'quantity' ? ($data['quantity_rules'] ?? []) : null;
 
         return $data;
     }

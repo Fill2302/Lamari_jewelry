@@ -11,6 +11,7 @@ use App\Models\Product;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -48,7 +49,33 @@ class DiscountResource extends Resource
     {
         return $schema->components([
             TextInput::make('name')->label('Назва знижки')->required()->maxLength(120),
-            TextInput::make('percentage')->label('Знижка, %')->numeric()->integer()->minValue(1)->maxValue(99)->suffix('%')->required(),
+            Select::make('mode')->label('Тип знижки')->options([
+                'standard' => 'Звичайна — один відсоток',
+                'quantity' => 'Залежно від кількості товарів',
+            ])->default('standard')->required()->live(),
+            TextInput::make('percentage')->label('Знижка, %')->numeric()->integer()->minValue(1)->maxValue(99)->suffix('%')
+                ->visible(fn (Get $get): bool => ($get('mode') ?? 'standard') === 'standard')
+                ->required(fn (Get $get): bool => ($get('mode') ?? 'standard') === 'standard'),
+            Repeater::make('quantity_rules')->label('Правила за кількістю')
+                ->schema([
+                    TextInput::make('min_quantity')->label('Від кількості, шт.')->numeric()->integer()->minValue(1)->required(),
+                    TextInput::make('percentage')->label('Знижка, %')->numeric()->integer()->minValue(1)->maxValue(99)->suffix('%')->required(),
+                    Select::make('apply_to')->label('На які товари застосувати')->options([
+                        'all' => 'На всі відповідні товари',
+                        'position' => 'Лише на товар за порядком',
+                    ])->default('all')->required()->live(),
+                    TextInput::make('position')->label('На який товар за порядком')->numeric()->integer()->minValue(1)
+                        ->helperText('Наприклад: 2 — лише на другий, 3 — лише на третій. Рахуються найдешевші відповідні товари.')
+                        ->visible(fn (Get $get): bool => $get('apply_to') === 'position')
+                        ->required(fn (Get $get): bool => $get('apply_to') === 'position'),
+                ])
+                ->columns(4)
+                ->defaultItems(1)
+                ->addActionLabel('Додати ще рівень')
+                ->reorderable(false)
+                ->helperText('Спрацьовує найвищий досягнутий рівень. Наприклад: від 1 — 5%, від 2 — 10%, від 3 — 15%; останній рівень діє і для більшої кількості.')
+                ->visible(fn (Get $get): bool => $get('mode') === 'quantity')
+                ->required(fn (Get $get): bool => $get('mode') === 'quantity'),
             Select::make('scope')->label('Застосувати до')->options([
                 'all' => 'Усіх товарів',
                 'category' => 'Розділу або підрозділу',
@@ -127,7 +154,9 @@ class DiscountResource extends Resource
     {
         return $table->columns([
             TextColumn::make('name')->label('Назва')->searchable(),
-            TextColumn::make('percentage')->label('Знижка')->suffix('%')->sortable(),
+            TextColumn::make('percentage')->label('Знижка')->formatStateUsing(
+                fn (Discount $record): string => $record->mode === 'quantity' ? 'За кількістю' : $record->percentage.'%',
+            )->sortable(),
             TextColumn::make('scope')->label('На що діє')->formatStateUsing(fn (Discount $record): string => match ($record->scope) {
                 'all' => 'Увесь каталог',
                 'category' => 'Розділів: '.$record->categories()->count(),
