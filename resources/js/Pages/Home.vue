@@ -53,18 +53,6 @@ const faqs = [
       </span>
     </Link>
 
-    <section class="section home-catalog-intro">
-      <div class="section-title">
-        <div><p class="eyebrow">КАТАЛОГ</p><h2>Знайди свою прикрасу</h2></div>
-      </div>
-      <div class="department-grid">
-        <Link v-for="category in categories.filter(c => !['sale', 'summer'].includes(c.slug))" :key="category.id" :href="`/categories/${category.slug}`" class="department">
-          <span>{{ category.name }}</span>
-          <small>{{ category.children.length ? `${category.children.length} розділів` : 'Переглянути' }}</small>
-        </Link>
-      </div>
-    </section>
-
     <section v-if="newProducts.length" class="home-showcase">
       <div class="home-section-heading"><h2>Новинки</h2><Link href="/catalog?sort=newest">Переглянути всі</Link></div>
       <div class="home-products">
