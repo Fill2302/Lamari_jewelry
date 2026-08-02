@@ -227,10 +227,19 @@ body {
     .home-instagram {
         padding: 4rem 1rem;
     }
+    .home-showcase {
+        padding-top: 2.5rem;
+        padding-bottom: 2.5rem;
+    }
     .home-section-heading {
         align-items: center;
+        margin-bottom: 1.25rem;
     }
-    .home-section-heading h2,
+    .home-section-heading h2 {
+        font-size: 0.85rem;
+        line-height: 1.1;
+        letter-spacing: 0.08em;
+    }
     .home-faq h2,
     .home-instagram h2 {
         font-size: 2rem;
