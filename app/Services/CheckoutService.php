@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\Payments\PaymentProvider;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\PaymentRoutingSetting;
 use App\Models\ProductVariant;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -46,9 +47,10 @@ class CheckoutService
             $destinations = collect($resolved)
                 ->map(fn (array $item): string => $item[0]->product->payment_destination ?? 'unassigned')
                 ->unique();
-            $paymentDestination = $destinations->contains('privat')
-                ? 'privat'
-                : ($destinations->contains('mono') ? 'mono' : 'unassigned');
+            $mixedDestination = PaymentRoutingSetting::query()->value('mixed_cart_destination') ?: 'privat';
+            $paymentDestination = $destinations->contains('privat') && $destinations->contains('mono')
+                ? $mixedDestination
+                : ($destinations->contains('privat') ? 'privat' : ($destinations->contains('mono') ? 'mono' : 'unassigned'));
             $merchant = $this->selector->select($total);
             $cashOnDelivery = $paymentMethod === 'cash_on_delivery';
             $order = Order::create([...$customer, 'number' => 'LAM-'.now()->format('ymd').'-'.strtoupper(Str::random(6)), 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'payment_method' => $paymentMethod, 'payment_destination' => $paymentDestination, 'status' => $cashOnDelivery ? 'confirmed' : 'pending_payment', 'payment_status' => $cashOnDelivery ? 'cash_on_delivery' : 'pending', 'subtotal_amount' => $total, 'total_amount' => $total, 'currency' => 'UAH']);

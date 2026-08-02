@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\LegalEntity;
 use App\Models\MerchantAccount;
+use App\Models\PaymentRoutingSetting;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\CheckoutService;
@@ -88,5 +89,22 @@ class CheckoutTest extends TestCase
 
         $this->assertSame('privat', $order->payment_destination);
         $this->assertSame(['mono', 'privat'], $order->items->pluck('payment_destination')->all());
+    }
+
+    public function test_mixed_bank_destination_can_be_changed_to_monobank(): void
+    {
+        PaymentRoutingSetting::query()->update(['mixed_cart_destination' => 'mono']);
+        $monoVariant = $this->variant();
+        $monoVariant->product->update(['payment_destination' => 'mono']);
+        $category = Category::create(['name' => 'Mixed', 'slug' => 'mixed']);
+        $product = Product::create(['category_id' => $category->id, 'name' => 'Privat', 'slug' => 'privat', 'description' => 'Test', 'payment_destination' => 'privat']);
+        $privatVariant = ProductVariant::create(['product_id' => $product->id, 'sku' => 'PRI-2', 'name' => 'Default', 'price_amount' => 10000, 'stock_on_hand' => 2]);
+
+        [$order] = $this->app->make(CheckoutService::class)->create(
+            ['customer_name' => 'Filip', 'email' => 'f@example.com', 'phone' => '1', 'shipping_address' => []],
+            [['variant' => $monoVariant, 'quantity' => 1], ['variant' => $privatVariant, 'quantity' => 1]],
+        );
+
+        $this->assertSame('mono', $order->payment_destination);
     }
 }
