@@ -1964,6 +1964,24 @@ nav {
     .desktop-category-nav {
         display: none;
     }
+    header.home-overlay-header {
+        position: absolute;
+        top: 28px;
+        right: 0;
+        left: 0;
+        border-bottom-color: transparent;
+        background: transparent;
+        color: #fff;
+        backdrop-filter: none;
+        text-shadow: 0 1px 12px rgb(0 0 0 / 0.35);
+    }
+    header.home-overlay-header .brand img {
+        filter: brightness(0) invert(1) drop-shadow(0 1px 8px rgb(0 0 0 / 0.3));
+    }
+    header.home-overlay-header .header-icon {
+        color: #fff;
+        filter: drop-shadow(0 1px 6px rgb(0 0 0 / 0.35));
+    }
     .catalog-head {
         padding: 1rem 5vw 0.9rem;
         overflow: hidden;
@@ -2529,7 +2547,7 @@ nav {
 }
 @media (max-width: 600px) {
     .home-campaign {
-        height: calc(100svh - 82px);
+        height: calc(100svh - 28px);
         min-height: 0;
     }
     .home-campaign video {

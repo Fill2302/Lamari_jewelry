@@ -44,7 +44,7 @@ const faqs = [
     <link rel="canonical" href="http://localhost" />
     <meta property="og:title" content="Lamari Jewelry" />
   </Head>
-  <StoreLayout>
+  <StoreLayout home-overlay>
     <Link href="/catalog" class="home-campaign" aria-label="Перейти до каталогу всіх товарів">
       <img
         class="home-campaign-desktop"

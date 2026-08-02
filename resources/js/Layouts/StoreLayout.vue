@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+const props = withDefaults(defineProps<{ homeOverlay?: boolean }>(), { homeOverlay: false });
 const page = usePage<any>();
 const menuOpen = ref(false);
 const searchOpen = ref(false);
@@ -89,7 +90,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleEscape));
   </div>
   <div v-if="headerPinned" class="site-header-placeholder" aria-hidden="true"></div>
   <header
-    :class="{ 'is-pinned': headerPinned }"
+    :class="{ 'is-pinned': headerPinned, 'home-overlay-header': props.homeOverlay && !headerPinned }"
     :style="headerPinned ? { top: `${headerViewportOffset}px` } : undefined"
   >
     <Link href="/" class="brand" aria-label="Lamari Jewelry">
