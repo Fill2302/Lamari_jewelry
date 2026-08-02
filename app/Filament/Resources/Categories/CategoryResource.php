@@ -59,7 +59,7 @@ class CategoryResource extends Resource
             TextColumn::make('position')->label('Порядок')->sortable(),
             ToggleColumn::make('show_on_home')->label('На головній'),
             IconColumn::make('is_active')->label('Активна')->boolean(),
-        ])->defaultSort('position')->reorderable('position')->recordActions([EditAction::make()])
+        ])->defaultSort('position')->paginationPageOptions([5, 10, 25, 50, 100])->reorderable('position')->recordActions([EditAction::make()])
             ->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make()])]);
     }
 

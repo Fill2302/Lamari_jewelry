@@ -81,6 +81,7 @@ class ProductsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('catalog_position')
+            ->paginationPageOptions([5, 10, 25, 50, 100])
             ->filters([
                 SelectFilter::make('category_id')
                     ->label('Категорія / підкатегорія')
