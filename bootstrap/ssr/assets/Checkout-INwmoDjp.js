@@ -1,5 +1,5 @@
-import { t as StoreLayout_default } from "./StoreLayout-DpbhNzPq.js";
-import { Fragment, createBlock, createCommentVNode, createTextVNode, createVNode, defineComponent, openBlock, ref, renderList, toDisplayString, unref, useSSRContext, vModelRadio, vModelText, watch, withCtx, withDirectives, withModifiers } from "vue";
+import { t as StoreLayout_default } from "./StoreLayout-CI3WdeRz.js";
+import { Fragment, computed, createBlock, createCommentVNode, createTextVNode, createVNode, defineComponent, openBlock, ref, renderList, toDisplayString, unref, useSSRContext, vModelRadio, vModelText, watch, withCtx, withDirectives, withModifiers } from "vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import { ssrIncludeBooleanAttr, ssrInterpolate, ssrLooseEqual, ssrRenderAttr, ssrRenderClass, ssrRenderComponent, ssrRenderList } from "vue/server-renderer";
 //#region resources/js/Pages/Checkout.vue?vue&type=script&setup=true&lang.ts
@@ -12,6 +12,8 @@ var Checkout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 		total: {}
 	},
 	setup(__props) {
+		const props = __props;
+		const discountTotal = computed(() => props.items.reduce((sum, item) => sum + (item.discount_total || 0), 0));
 		const form = useForm({
 			first_name: "",
 			last_name: "",
@@ -191,7 +193,10 @@ var Checkout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 						_push(`</label><fieldset class="checkout-payment-methods"${_scopeId}><legend${_scopeId}>Спосіб оплати</legend><label class="${ssrRenderClass({ selected: unref(form).payment_method === "online" })}"${_scopeId}><input${ssrIncludeBooleanAttr(ssrLooseEqual(unref(form).payment_method, "online")) ? " checked" : ""} type="radio" value="online"${_scopeId}><span${_scopeId}><strong${_scopeId}>Онлайн-оплата</strong><small${_scopeId}>На тестовому сайті оплата не списується</small></span></label><label class="${ssrRenderClass({ selected: unref(form).payment_method === "cash_on_delivery" })}"${_scopeId}><input${ssrIncludeBooleanAttr(ssrLooseEqual(unref(form).payment_method, "cash_on_delivery")) ? " checked" : ""} type="radio" value="cash_on_delivery"${_scopeId}><span${_scopeId}><strong${_scopeId}>Оплата при отриманні</strong><small${_scopeId}>Післяплата у відділенні Нової пошти</small></span></label>`);
 						if (unref(form).errors.payment_method) _push(`<small${_scopeId}>${ssrInterpolate(unref(form).errors.payment_method)}</small>`);
 						else _push(`<!---->`);
-						_push(`</fieldset></div><aside class="checkout-summary"${_scopeId}><h2${_scopeId}>Разом</h2><div class="checkout-summary-row"${_scopeId}><span${_scopeId}>Товарів: ${ssrInterpolate(__props.items.reduce((sum, item) => sum + item.quantity, 0))}</span><b${_scopeId}>${ssrInterpolate((__props.total / 100).toLocaleString("uk-UA"))} ₴</b></div><p${_scopeId}>Вартість доставки буде розрахована під час підтвердження замовлення.</p><button class="button"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""}${_scopeId}>${ssrInterpolate(unref(form).processing ? "Оформлюємо…" : "Підтвердити замовлення")}</button></aside></form></section>`);
+						_push(`</fieldset></div><aside class="checkout-summary"${_scopeId}><h2${_scopeId}>Разом</h2><div class="checkout-summary-row"${_scopeId}><span${_scopeId}>Товарів: ${ssrInterpolate(__props.items.reduce((sum, item) => sum + item.quantity, 0))}</span><b${_scopeId}>${ssrInterpolate((__props.total / 100).toLocaleString("uk-UA"))} ₴</b></div>`);
+						if (discountTotal.value) _push(`<div class="checkout-discount-row"${_scopeId}><span${_scopeId}>Ваша знижка</span><b${_scopeId}>− ${ssrInterpolate((discountTotal.value / 100).toLocaleString("uk-UA"))} ₴</b></div>`);
+						else _push(`<!---->`);
+						_push(`<p${_scopeId}>Вартість доставки буде розрахована під час підтвердження замовлення.</p><button class="button"${ssrIncludeBooleanAttr(unref(form).processing) ? " disabled" : ""}${_scopeId}>${ssrInterpolate(unref(form).processing ? "Оформлюємо…" : "Підтвердити замовлення")}</button></aside></form></section>`);
 					} else return [createVNode("section", { class: "checkout-page" }, [createVNode("header", { class: "checkout-heading" }, [
 						createVNode("p", { class: "eyebrow" }, "ВАШЕ ЗАМОВЛЕННЯ"),
 						createVNode("h1", null, "Оформлення замовлення"),
@@ -332,6 +337,10 @@ var Checkout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 					]), createVNode("aside", { class: "checkout-summary" }, [
 						createVNode("h2", null, "Разом"),
 						createVNode("div", { class: "checkout-summary-row" }, [createVNode("span", null, "Товарів: " + toDisplayString(__props.items.reduce((sum, item) => sum + item.quantity, 0)), 1), createVNode("b", null, toDisplayString((__props.total / 100).toLocaleString("uk-UA")) + " ₴", 1)]),
+						discountTotal.value ? (openBlock(), createBlock("div", {
+							key: 0,
+							class: "checkout-discount-row"
+						}, [createVNode("span", null, "Ваша знижка"), createVNode("b", null, "− " + toDisplayString((discountTotal.value / 100).toLocaleString("uk-UA")) + " ₴", 1)])) : createCommentVNode("", true),
 						createVNode("p", null, "Вартість доставки буде розрахована під час підтвердження замовлення."),
 						createVNode("button", {
 							class: "button",

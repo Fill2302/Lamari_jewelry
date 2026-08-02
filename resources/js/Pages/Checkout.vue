@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import StoreLayout from '../Layouts/StoreLayout.vue';
 
-defineProps<{ items: any[], total: number }>();
+const props = defineProps<{ items: any[], total: number }>();
+const discountTotal = computed(() => props.items.reduce((sum:number, item:any) => sum + (item.discount_total || 0), 0));
 
 const form = useForm({
   first_name: '',
@@ -240,6 +241,10 @@ function submit() {
           <div class="checkout-summary-row">
             <span>Товарів: {{ items.reduce((sum, item) => sum + item.quantity, 0) }}</span>
             <b>{{ (total / 100).toLocaleString('uk-UA') }} ₴</b>
+          </div>
+          <div v-if="discountTotal" class="checkout-discount-row">
+            <span>Ваша знижка</span>
+            <b>− {{ (discountTotal / 100).toLocaleString('uk-UA') }} ₴</b>
           </div>
           <p>Вартість доставки буде розрахована під час підтвердження замовлення.</p>
           <button class="button" :disabled="form.processing">

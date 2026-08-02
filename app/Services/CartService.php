@@ -56,7 +56,19 @@ class CartService
     {
         $c = $this->session->get('cart', []);
 
-        return ProductVariant::with('product.media', 'product.variants')->whereIn('id', array_keys($c))->get()->map(fn ($v) => ['variant' => $v, 'quantity' => $c[$v->id]['quantity'], 'total' => $v->effective_price_amount * $c[$v->id]['quantity']])->all();
+        return ProductVariant::with('product.media', 'product.variants')->whereIn('id', array_keys($c))->get()->map(function ($variant) use ($c) {
+            $quantity = $c[$variant->id]['quantity'];
+            $originalTotal = $variant->original_price_amount * $quantity;
+            $total = $variant->effective_price_amount * $quantity;
+
+            return [
+                'variant' => $variant,
+                'quantity' => $quantity,
+                'original_total' => $originalTotal,
+                'discount_total' => $originalTotal - $total,
+                'total' => $total,
+            ];
+        })->all();
     }
 
     public function clear(): void

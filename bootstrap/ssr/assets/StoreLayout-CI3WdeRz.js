@@ -50,6 +50,7 @@ var StoreLayout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defi
 			if (value) cartOpen.value = true;
 		});
 		const money = (amount) => (amount / 100).toLocaleString("uk-UA");
+		const cartDiscount = () => page.props.cartPreview.items.reduce((sum, item) => sum + (item.discount_total || 0), 0);
 		const asset = (url) => !url ? "" : url.startsWith("http") ? url : `/storage/${url}`;
 		const itemImage = (item) => asset(item.variant.product.media?.find((m) => m.type === "image")?.url || item.variant.product.image_url);
 		const closeSearch = () => {
@@ -176,12 +177,20 @@ var StoreLayout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defi
 					ssrRenderList(item.variant.product.variants, (variant) => {
 						_push(`<option${ssrRenderAttr("value", variant.id)}${ssrIncludeBooleanAttr(!variant.is_active || variant.stock_on_hand <= variant.stock_reserved) ? " disabled" : ""}>${ssrInterpolate(variant.name)}</option>`);
 					});
-					_push(`<!--]--></select></label><small>Артикул ${ssrInterpolate(item.variant.sku)}</small><div class="qty"><button>−</button><span>${ssrInterpolate(item.quantity)}</span><button${ssrIncludeBooleanAttr(item.quantity >= item.variant.stock_on_hand - item.variant.stock_reserved) ? " disabled" : ""}>+</button></div></div><div class="drawer-item-price"><b>${ssrInterpolate(money(item.total))} ₴</b><button>Видалити</button></div></article>`);
+					_push(`<!--]--></select></label><small>Артикул ${ssrInterpolate(item.variant.sku)}</small><div class="qty"><button>−</button><span>${ssrInterpolate(item.quantity)}</span><button${ssrIncludeBooleanAttr(item.quantity >= item.variant.stock_on_hand - item.variant.stock_reserved) ? " disabled" : ""}>+</button></div></div><div class="drawer-item-price"><div class="discounted-price">`);
+					if (item.discount_total) _push(`<span class="discount-label">-${ssrInterpolate(item.variant.discount_percentage)}%</span>`);
+					else _push(`<!---->`);
+					if (item.discount_total) _push(`<del>${ssrInterpolate(money(item.original_total))} ₴</del>`);
+					else _push(`<!---->`);
+					_push(`<b>${ssrInterpolate(money(item.total))} ₴</b></div><button>Видалити</button></div></article>`);
 				});
 				_push(`<!--]--></div>`);
 			}
 			if (unref(page).props.cartPreview.items.length) {
-				_push(`<div class="cart-drawer-footer"><p class="delivery-note">Вартість доставки буде розрахована під час оформлення.</p><div class="drawer-subtotal"><span>Разом</span><b>${ssrInterpolate(money(unref(page).props.cartPreview.subtotal))} ₴</b></div>`);
+				_push(`<div class="cart-drawer-footer"><p class="delivery-note">Вартість доставки буде розрахована під час оформлення.</p>`);
+				if (cartDiscount()) _push(`<div class="drawer-discount"><span>Ваша знижка</span><b>− ${ssrInterpolate(money(cartDiscount()))} ₴</b></div>`);
+				else _push(`<!---->`);
+				_push(`<div class="drawer-subtotal"><span>Разом</span><b>${ssrInterpolate(money(unref(page).props.cartPreview.subtotal))} ₴</b></div>`);
 				_push(ssrRenderComponent(unref(Link), {
 					href: "/checkout",
 					class: "button drawer-checkout",

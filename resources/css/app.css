@@ -1334,6 +1334,10 @@ nav {
     padding-top: 1rem;
     border-top: 1px solid #cfc5ba;
 }
+.checkout-discount-row {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+}
 .checkout-summary > p {
     margin: 1rem 0 0;
     color: #746b64;
@@ -2043,6 +2047,23 @@ nav {
     justify-content: space-between;
     font-size: 0.82rem;
 }
+.discounted-price {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+.discounted-price del {
+    color: #8d857f;
+    font-weight: 400;
+}
+.discount-label {
+    padding: 0.28rem 0.4rem;
+    background: #d73925;
+    color: #fff;
+    font: 600 0.68rem/1 Arial, sans-serif;
+}
 .drawer-item-price button {
     text-decoration: underline;
     color: #786f68;
@@ -2059,6 +2080,26 @@ nav {
     display: flex;
     justify-content: space-between;
     font-size: 1.25rem;
+}
+.drawer-discount,
+.cart-discount-total,
+.checkout-discount-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: #b52d1d;
+}
+.drawer-discount {
+    margin: 0.8rem 0 0.45rem;
+    font-size: 0.88rem;
+}
+.cart-discount-total {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ddd4c9;
+}
+.cart-discount-total + .total {
+    margin-top: 0.5rem;
 }
 .drawer-checkout {
     display: block;

@@ -46,6 +46,7 @@ onUnmounted(() => {
 });
 watch(() => page.props.flash?.cartOpen, value => { if (value) cartOpen.value = true; });
 const money = (amount: number) => (amount / 100).toLocaleString('uk-UA');
+const cartDiscount = () => page.props.cartPreview.items.reduce((sum:number, item:any) => sum + (item.discount_total || 0), 0);
 const asset = (url?: string) => !url ? '' : url.startsWith('http') ? url : `/storage/${url}`;
 const itemImage = (item: any) => asset(item.variant.product.media?.find((m:any) => m.type === 'image')?.url || item.variant.product.image_url);
 const setQuantity = (item:any, quantity:number) => router.put(`/cart/${item.variant.id}`, { quantity }, { preserveScroll: true });
@@ -189,10 +190,10 @@ onUnmounted(() => window.removeEventListener('keydown', handleEscape));
       <article v-for="item in page.props.cartPreview.items" :key="item.variant.id" class="drawer-item">
         <img :src="itemImage(item)" :alt="item.variant.product.name" />
         <div class="drawer-item-info"><Link :href="`/products/${item.variant.product.slug}`" @click="cartOpen=false">{{ item.variant.product.name }}</Link><label class="cart-size">Довжина<select :value="item.variant.id" @change="setVariant(item, Number(($event.target as HTMLSelectElement).value))"><option v-for="variant in item.variant.product.variants" :key="variant.id" :value="variant.id" :disabled="!variant.is_active || variant.stock_on_hand <= variant.stock_reserved">{{ variant.name }}</option></select></label><small>Артикул {{ item.variant.sku }}</small><div class="qty"><button @click="setQuantity(item,item.quantity-1)">−</button><span>{{ item.quantity }}</span><button @click="setQuantity(item,item.quantity+1)" :disabled="item.quantity >= item.variant.stock_on_hand-item.variant.stock_reserved">+</button></div></div>
-        <div class="drawer-item-price"><b>{{ money(item.total) }} ₴</b><button @click="remove(item)">Видалити</button></div>
+        <div class="drawer-item-price"><div class="discounted-price"><span v-if="item.discount_total" class="discount-label">-{{ item.variant.discount_percentage }}%</span><del v-if="item.discount_total">{{ money(item.original_total) }} ₴</del><b>{{ money(item.total) }} ₴</b></div><button @click="remove(item)">Видалити</button></div>
       </article>
     </div>
-    <div v-if="page.props.cartPreview.items.length" class="cart-drawer-footer"><p class="delivery-note">Вартість доставки буде розрахована під час оформлення.</p><div class="drawer-subtotal"><span>Разом</span><b>{{ money(page.props.cartPreview.subtotal) }} ₴</b></div><Link href="/checkout" class="button drawer-checkout" @click="cartOpen=false">Оформити замовлення</Link><Link href="/cart" class="view-cart" @click="cartOpen=false">Переглянути кошик</Link></div>
+    <div v-if="page.props.cartPreview.items.length" class="cart-drawer-footer"><p class="delivery-note">Вартість доставки буде розрахована під час оформлення.</p><div v-if="cartDiscount()" class="drawer-discount"><span>Ваша знижка</span><b>− {{ money(cartDiscount()) }} ₴</b></div><div class="drawer-subtotal"><span>Разом</span><b>{{ money(page.props.cartPreview.subtotal) }} ₴</b></div><Link href="/checkout" class="button drawer-checkout" @click="cartOpen=false">Оформити замовлення</Link><Link href="/cart" class="view-cart" @click="cartOpen=false">Переглянути кошик</Link></div>
   </aside>
 
   <div v-if="page.props.flash?.success" class="notice">{{ page.props.flash.success }}</div>

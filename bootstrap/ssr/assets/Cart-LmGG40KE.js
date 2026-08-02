@@ -1,4 +1,4 @@
-import { t as StoreLayout_default } from "./StoreLayout-DpbhNzPq.js";
+import { t as StoreLayout_default } from "./StoreLayout-CI3WdeRz.js";
 import { Fragment, createBlock, createCommentVNode, createTextVNode, createVNode, defineComponent, openBlock, renderList, toDisplayString, unref, useSSRContext, withCtx } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
 import { ssrIncludeBooleanAttr, ssrInterpolate, ssrRenderAttr, ssrRenderComponent, ssrRenderList } from "vue/server-renderer";
@@ -11,6 +11,8 @@ var Cart_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCompo
 		total: {}
 	},
 	setup(__props) {
+		const props = __props;
+		const discountTotal = () => props.items.reduce((sum, item) => sum + (item.discount_total || 0), 0);
 		const asset = (url) => !url ? "" : url.startsWith("http") ? url : `/storage/${url}`;
 		const itemImage = (item) => asset(item.variant.product.media?.find((media) => media.type === "image")?.url || item.variant.product.image_url);
 		const setVariant = (item, variantId) => router.put(`/cart/${item.variant.id}/variant`, { variant_id: variantId }, { preserveScroll: true });
@@ -38,9 +40,16 @@ var Cart_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCompo
 							ssrRenderList(item.variant.product.variants, (variant) => {
 								_push(`<option${ssrRenderAttr("value", variant.id)}${ssrIncludeBooleanAttr(!variant.is_active || variant.stock_on_hand <= variant.stock_reserved) ? " disabled" : ""}${_scopeId}>${ssrInterpolate(variant.name)}</option>`);
 							});
-							_push(`<!--]--></select></label><p${_scopeId}>${ssrInterpolate(item.quantity)} шт. · ${ssrInterpolate(item.variant.sku)}</p></div><b${_scopeId}>${ssrInterpolate((item.total / 100).toLocaleString("uk-UA"))} ₴</b><button class="link"${_scopeId}>Видалити</button></article>`);
+							_push(`<!--]--></select></label><p${_scopeId}>${ssrInterpolate(item.quantity)} шт. · ${ssrInterpolate(item.variant.sku)}</p></div><div class="discounted-price"${_scopeId}>`);
+							if (item.discount_total) _push(`<span class="discount-label"${_scopeId}>-${ssrInterpolate(item.variant.discount_percentage)}%</span>`);
+							else _push(`<!---->`);
+							if (item.discount_total) _push(`<del${_scopeId}>${ssrInterpolate((item.original_total / 100).toLocaleString("uk-UA"))} ₴</del>`);
+							else _push(`<!---->`);
+							_push(`<b${_scopeId}>${ssrInterpolate((item.total / 100).toLocaleString("uk-UA"))} ₴</b></div><button class="link"${_scopeId}>Видалити</button></article>`);
 						});
 						_push(`<!--]-->`);
+						if (__props.items.length && discountTotal()) _push(`<div class="cart-discount-total"${_scopeId}><span${_scopeId}>Ваша знижка</span><b${_scopeId}>− ${ssrInterpolate((discountTotal() / 100).toLocaleString("uk-UA"))} ₴</b></div>`);
+						else _push(`<!---->`);
 						if (__props.items.length) _push(`<div class="total"${_scopeId}><span${_scopeId}>Разом</span><b${_scopeId}>${ssrInterpolate((__props.total / 100).toLocaleString("uk-UA"))} ₴</b></div>`);
 						else _push(`<!---->`);
 						if (__props.items.length) _push(ssrRenderComponent(unref(Link), {
@@ -87,19 +96,30 @@ var Cart_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCompo
 									}), 128))], 40, ["value", "onChange"])]),
 									createVNode("p", null, toDisplayString(item.quantity) + " шт. · " + toDisplayString(item.variant.sku), 1)
 								]),
-								createVNode("b", null, toDisplayString((item.total / 100).toLocaleString("uk-UA")) + " ₴", 1),
+								createVNode("div", { class: "discounted-price" }, [
+									item.discount_total ? (openBlock(), createBlock("span", {
+										key: 0,
+										class: "discount-label"
+									}, "-" + toDisplayString(item.variant.discount_percentage) + "%", 1)) : createCommentVNode("", true),
+									item.discount_total ? (openBlock(), createBlock("del", { key: 1 }, toDisplayString((item.original_total / 100).toLocaleString("uk-UA")) + " ₴", 1)) : createCommentVNode("", true),
+									createVNode("b", null, toDisplayString((item.total / 100).toLocaleString("uk-UA")) + " ₴", 1)
+								]),
 								createVNode("button", {
 									class: "link",
 									onClick: ($event) => unref(router).delete(`/cart/${item.variant.id}`)
 								}, "Видалити", 8, ["onClick"])
 							]);
 						}), 128)),
-						__props.items.length ? (openBlock(), createBlock("div", {
+						__props.items.length && discountTotal() ? (openBlock(), createBlock("div", {
 							key: 1,
+							class: "cart-discount-total"
+						}, [createVNode("span", null, "Ваша знижка"), createVNode("b", null, "− " + toDisplayString((discountTotal() / 100).toLocaleString("uk-UA")) + " ₴", 1)])) : createCommentVNode("", true),
+						__props.items.length ? (openBlock(), createBlock("div", {
+							key: 2,
 							class: "total"
 						}, [createVNode("span", null, "Разом"), createVNode("b", null, toDisplayString((__props.total / 100).toLocaleString("uk-UA")) + " ₴", 1)])) : createCommentVNode("", true),
 						__props.items.length ? (openBlock(), createBlock(unref(Link), {
-							key: 2,
+							key: 3,
 							href: "/checkout",
 							class: "button"
 						}, {
