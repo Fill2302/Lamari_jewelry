@@ -1467,8 +1467,8 @@ nav {
 }
 .product-size-guide p {
     margin: 0 0 0.35rem;
-    font-size: 0.84rem;
-    font-weight: 550;
+    font-size: 0.78rem;
+    font-weight: 400;
 }
 .product-size-guide button {
     padding: 0;
@@ -1476,7 +1476,7 @@ nav {
     border-bottom: 1px solid currentColor;
     background: transparent;
     color: #6d645e;
-    font: 500 0.78rem/1.35 Inter, sans-serif;
+    font: 500 0.86rem/1.35 Inter, sans-serif;
     cursor: pointer;
 }
 .variant-pills {
