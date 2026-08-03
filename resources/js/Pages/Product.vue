@@ -163,6 +163,24 @@ const discountLabel = computed(() => {
   const catalogLabel = p.product.catalog_badges?.find((badge: any) => badge.type === 'sale')?.label;
   return catalogLabel || `-${Math.round((1 - currentPrice.value / compareAtPrice.value) * 100)}%`;
 });
+const productFaqs = [
+  {
+    question: 'Яка гарантія на вироби?',
+    answer: 'На всі прикраси LAMARI діє гарантія 1 місяць. Якщо протягом цього часу виявиться виробничий дефект, ми безкоштовно відремонтуємо або замінимо виріб. Гарантія не поширюється на механічні пошкодження та пошкодження через недотримання рекомендацій із догляду.',
+  },
+  {
+    question: 'Чи можу я обміняти або повернути товар?',
+    answer: 'Так, ви можете обміняти товар на інший або повернути його протягом 14 днів із моменту отримання.',
+  },
+  {
+    question: 'Чи можна мочити прикраси?',
+    answer: 'Прикраси з ювелірної сталі можна мочити та носити не знімаючи. Прикраси з покриттям золотом або родієм рекомендуємо знімати перед душем, морем чи басейном, щоб вони якомога довше зберігали свій початковий вигляд.',
+  },
+  {
+    question: 'Чи темніють прикраси?',
+    answer: 'Наші прикраси не темніють. За умови дотримання рекомендацій із догляду та правильного зберігання вони довго зберігатимуть свій початковий вигляд.',
+  },
+];
 const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.product.name, image: media.value.filter((m:any)=>m.type==='image').map((m:any)=>asset(m.url)), description: p.product.description, sku: p.product.variants[0]?.sku, offers: { '@type': 'Offer', priceCurrency: 'UAH', price: (p.product.variants[0]?.effective_price_amount ?? p.product.variants[0]?.price_amount) / 100, availability: 'https://schema.org/InStock' } };
 </script>
 
@@ -253,6 +271,7 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
         <details><summary>Упаковка</summary><p>{{ product.packaging_text }}</p><img class="packaging-image" :src="'/images/product/lamari-packaging.webp'" alt="Подарункова брендована упаковка Lamari" loading="lazy"></details>
         <details><summary>Догляд</summary><p>{{ product.care_text }}</p></details>
         <details><summary>Доставка та оплата</summary><p>{{ product.delivery_payment_text || 'Доставка Україною та за кордон. Точний спосіб і вартість будуть доступні під час оформлення.' }}</p></details>
+        <details v-for="faq in productFaqs" :key="faq.question" class="product-faq"><summary>{{ faq.question }}</summary><p>{{ faq.answer }}</p></details>
       </aside>
     </section>
     <div v-if="showStickyBuy" class="sticky-buy-bar">
