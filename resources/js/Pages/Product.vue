@@ -18,6 +18,7 @@ const carouselMedia = computed(() => media.value.length > 1
 const gallery = ref<HTMLElement | null>(null);
 const buyButton = ref<HTMLElement | null>(null);
 const showStickyBuy = ref(false);
+const sizeGuideOpen = ref(false);
 const favorites = ref<number[]>([]);
 const isFavorite = computed(() => favorites.value.includes(p.product.id));
 const toggleFavorite = (productId = p.product.id) => {
@@ -270,9 +271,12 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
           <del v-if="compareAtPrice">{{ (compareAtPrice / 100).toLocaleString('uk-UA') }} ₴</del>
           <span>{{ (currentPrice / 100).toLocaleString('uk-UA') }} ₴</span>
         </p>
-        <label>Оберіть розмір
-          <div class="variant-pills"><button v-for="v in product.variants" :key="v.id" :class="{ active: selected === v.id }" @click="selected = v.id">{{ v.name }}</button></div>
-        </label>
+        <div class="product-size-guide">
+          <p>Виберіть розмір + 6 см подовжувач:</p>
+          <button type="button" @click="sizeGuideOpen = true">Як визначити розмір</button>
+        </div>
+        <span class="visually-hidden">Оберіть розмір</span>
+        <div class="variant-pills"><button v-for="v in product.variants" :key="v.id" :class="{ active: selected === v.id }" @click="selected = v.id">{{ v.name }}</button></div>
         <button ref="buyButton" class="button buy" @click="add" :disabled="form.processing || !selected">Додати в кошик</button>
         <div class="product-benefits"><span>Безкоштовне брендоване пакування</span><span>Відправлення 1–2 робочі дні</span></div>
         <section v-if="recommendedProducts.length" class="complete-look" aria-labelledby="complete-look-title">
@@ -306,5 +310,15 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
       </strong>
       <button class="button" @click="add" :disabled="form.processing || !selected">Додати в кошик</button>
     </div>
+    <Teleport to="body">
+      <div v-if="sizeGuideOpen" class="size-guide-overlay" role="presentation" tabindex="-1" autofocus @click.self="sizeGuideOpen = false" @keydown.esc="sizeGuideOpen = false">
+        <section class="size-guide-modal" role="dialog" aria-modal="true" aria-labelledby="size-guide-title">
+          <button type="button" class="size-guide-close" aria-label="Закрити" @click="sizeGuideOpen = false">×</button>
+          <h2 id="size-guide-title">Як визначити розмір кольє або ланцюжка</h2>
+          <p>Зробити це нескладно в домашніх умовах. Оберніть нитку навколо шиї та зафіксуйте її на потрібному місці. Зробіть позначку й прикладіть нитку до лінійки. Або виміряйте шию впритул сантиметровою стрічкою. До отриманого значення додайте 10 см — так ви отримаєте комфортний розмір кольє.</p>
+          <img :src="'/images/product/necklace-size-guide.jpg'" alt="Як виміряти обхват шиї сантиметровою стрічкою" loading="lazy">
+        </section>
+      </div>
+    </Teleport>
   </StoreLayout>
 </template>

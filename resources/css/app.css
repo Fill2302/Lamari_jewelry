@@ -1450,6 +1450,35 @@ nav {
     display: block;
     font-size: 0.78rem;
 }
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+.product-size-guide {
+    margin: 0 0 0.6rem;
+    color: #514943;
+}
+.product-size-guide p {
+    margin: 0 0 0.35rem;
+    font-size: 0.84rem;
+    font-weight: 550;
+}
+.product-size-guide button {
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid currentColor;
+    background: transparent;
+    color: #6d645e;
+    font: 500 0.78rem/1.35 Inter, sans-serif;
+    cursor: pointer;
+}
 .variant-pills {
     display: flex;
     gap: 0.5rem;
@@ -1594,6 +1623,52 @@ nav {
 }
 .sticky-buy-bar {
     display: none;
+}
+.size-guide-overlay {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+    background: rgb(33 27 24 / 0.58);
+    overflow-y: auto;
+}
+.size-guide-modal {
+    position: relative;
+    width: min(680px, 100%);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    background: #fff;
+    box-shadow: 0 24px 70px rgb(33 27 24 / 0.22);
+}
+.size-guide-modal h2 {
+    max-width: 90%;
+    margin: 0 0 1rem;
+    font: 500 clamp(1.45rem, 4vw, 2rem)/1.15 Georgia, serif;
+}
+.size-guide-modal p {
+    margin: 0 0 1.25rem;
+    color: #514943;
+    font-size: 0.9rem;
+    line-height: 1.65;
+}
+.size-guide-modal img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.size-guide-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.9rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #211b18;
+    font: 300 2rem/1 Inter, sans-serif;
+    cursor: pointer;
 }
 .narrow,
 .payment {
