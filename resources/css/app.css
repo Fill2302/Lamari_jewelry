@@ -1539,6 +1539,12 @@ nav {
     cursor: pointer;
     font-weight: 600;
 }
+.packaging-image {
+    display: block;
+    width: min(300px, 100%);
+    height: auto;
+    margin-top: 1rem;
+}
 .buy-panel dl {
     display: grid;
     grid-template-columns: 1fr 1fr;

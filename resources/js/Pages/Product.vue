@@ -250,7 +250,7 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
         </section>
         <details open><summary>Характеристики</summary><dl><template v-for="(value,key) in product.characteristics"><dt>{{ key }}</dt><dd>{{ value }}</dd></template><dt>Матеріал</dt><dd>{{ product.material }}</dd></dl></details>
         <details><summary>Опис товару</summary><p>{{ product.description }}</p></details>
-        <details><summary>Упаковка</summary><p>{{ product.packaging_text }}</p></details>
+        <details><summary>Упаковка</summary><p>{{ product.packaging_text }}</p><img class="packaging-image" :src="'/images/product/lamari-packaging.webp'" alt="Подарункова брендована упаковка Lamari" loading="lazy"></details>
         <details><summary>Догляд</summary><p>{{ product.care_text }}</p></details>
         <details><summary>Доставка та оплата</summary><p>{{ product.delivery_payment_text || 'Доставка Україною та за кордон. Точний спосіб і вартість будуть доступні під час оформлення.' }}</p></details>
       </aside>
