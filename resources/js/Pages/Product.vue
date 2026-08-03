@@ -129,7 +129,14 @@ const updateActiveMedia = () => {
   }, 80);
 };
 const updateStickyBuy = () => {
-  showStickyBuy.value = Boolean(buyButton.value && buyButton.value.getBoundingClientRect().bottom < 0);
+  if (!buyButton.value) {
+    showStickyBuy.value = false;
+    return;
+  }
+
+  const buttonTop = buyButton.value.getBoundingClientRect().top;
+  const headerBottom = document.querySelector('header')?.getBoundingClientRect().bottom ?? 0;
+  showStickyBuy.value = buttonTop <= headerBottom;
 };
 onMounted(() => {
   try {
