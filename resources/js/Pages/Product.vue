@@ -181,6 +181,10 @@ const productFaqs = [
     answer: 'Наші прикраси не темніють. За умови дотримання рекомендацій із догляду та правильного зберігання вони довго зберігатимуть свій початковий вигляд.',
   },
 ];
+const deliveryPaymentText = [
+  'Доставка по Україні здійснюється Новою поштою. Також доступна міжнародна доставка. Точний спосіб, вартість і термін доставки будуть зазначені під час оформлення замовлення.',
+  'Замовлення можна оплатити банківською карткою, через Apple Pay або Google Pay. Також доступні передплата та оплата частинами.',
+];
 const toggleDetails = (event: MouseEvent) => {
   const details = (event.currentTarget as HTMLElement | null)?.closest('details');
   if (details instanceof HTMLDetailsElement) details.open = !details.open;
@@ -274,7 +278,7 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
         <details><summary @click.prevent="toggleDetails">Опис товару</summary><p>{{ product.description }}</p></details>
         <details><summary @click.prevent="toggleDetails">Упаковка</summary><p>{{ product.packaging_text }}</p><img class="packaging-image" :src="'/images/product/lamari-packaging.webp'" alt="Подарункова брендована упаковка Lamari" loading="lazy"></details>
         <details><summary @click.prevent="toggleDetails">Догляд</summary><p>{{ product.care_text }}</p></details>
-        <details><summary @click.prevent="toggleDetails">Доставка та оплата</summary><p>{{ product.delivery_payment_text || 'Доставка Україною та за кордон. Точний спосіб і вартість будуть доступні під час оформлення.' }}</p></details>
+        <details><summary @click.prevent="toggleDetails">Доставка та оплата</summary><p v-for="paragraph in deliveryPaymentText" :key="paragraph">{{ paragraph }}</p></details>
         <details v-for="faq in productFaqs" :key="faq.question" class="product-faq"><summary @click.prevent="toggleDetails">{{ faq.question }}</summary><p>{{ faq.answer }}</p></details>
       </aside>
     </section>

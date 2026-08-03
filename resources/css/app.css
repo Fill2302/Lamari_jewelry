@@ -1465,12 +1465,21 @@ nav {
     text-transform: uppercase;
 }
 .complete-look-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
     gap: 0.75rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.complete-look-grid::-webkit-scrollbar {
+    display: none;
 }
 .complete-look-card {
+    flex: 0 0 calc((100% - 0.75rem) / 2);
     min-width: 0;
+    scroll-snap-align: start;
 }
 .complete-look-image {
     position: relative;
