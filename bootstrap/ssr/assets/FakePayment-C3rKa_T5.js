@@ -1,4 +1,4 @@
-import { t as StoreLayout_default } from "./StoreLayout-CI3WdeRz.js";
+import { t as StoreLayout_default } from "./StoreLayout-CqSO763L.js";
 import { createTextVNode, createVNode, defineComponent, toDisplayString, unref, useSSRContext, withCtx } from "vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import { ssrIncludeBooleanAttr, ssrInterpolate, ssrRenderComponent } from "vue/server-renderer";

@@ -18,14 +18,14 @@ createServer((page) => createInertiaApp({
 	render: renderToString,
 	title: (t) => t ? `${t} · Lamari` : "Lamari",
 	resolve: (n) => resolvePageComponent(`./Pages/${n}.vue`, /* #__PURE__ */ Object.assign({
-		"./Pages/Cart.vue": () => import("./assets/Cart-GkuiCwdz.js"),
-		"./Pages/Category.vue": () => import("./assets/Category-CnWCLwZ7.js"),
-		"./Pages/Checkout.vue": () => import("./assets/Checkout-INwmoDjp.js"),
-		"./Pages/FakePayment.vue": () => import("./assets/FakePayment-3yobppXJ.js"),
-		"./Pages/Home.vue": () => import("./assets/Home-CWQ0R31-.js"),
-		"./Pages/Information.vue": () => import("./assets/Information-B0DyO3TP.js"),
-		"./Pages/Product.vue": () => import("./assets/Product-CdGAgv25.js"),
-		"./Pages/ThankYou.vue": () => import("./assets/ThankYou-cZsi2OZd.js")
+		"./Pages/Cart.vue": () => import("./assets/Cart-DVe-31Rh.js"),
+		"./Pages/Category.vue": () => import("./assets/Category-TM3Ti1WM.js"),
+		"./Pages/Checkout.vue": () => import("./assets/Checkout-Js4w-y3N.js"),
+		"./Pages/FakePayment.vue": () => import("./assets/FakePayment-C3rKa_T5.js"),
+		"./Pages/Home.vue": () => import("./assets/Home-Ch9S0AbD.js"),
+		"./Pages/Information.vue": () => import("./assets/Information-D1AemnN6.js"),
+		"./Pages/Product.vue": () => import("./assets/Product-CBPFV_1W.js"),
+		"./Pages/ThankYou.vue": () => import("./assets/ThankYou-ZDApYR1-.js")
 	})),
 	setup: ({ App, props, plugin }) => createSSRApp({ render: () => h(App, props) }).use(plugin)
 }), { host: "127.0.0.1" });

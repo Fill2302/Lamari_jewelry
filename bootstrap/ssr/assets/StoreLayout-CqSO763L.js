@@ -1,11 +1,16 @@
-import { createBlock, createCommentVNode, createTextVNode, createVNode, defineComponent, onMounted, onUnmounted, openBlock, ref, toDisplayString, unref, useSSRContext, watch, withCtx } from "vue";
+import { createBlock, createTextVNode, createVNode, defineComponent, onMounted, onUnmounted, openBlock, ref, toDisplayString, unref, useSSRContext, watch, withCtx } from "vue";
 import { Link, usePage } from "@inertiajs/vue3";
 import { ssrIncludeBooleanAttr, ssrInterpolate, ssrRenderAttr, ssrRenderClass, ssrRenderComponent, ssrRenderList, ssrRenderSlot, ssrRenderStyle } from "vue/server-renderer";
 //#region resources/js/Layouts/StoreLayout.vue?vue&type=script&setup=true&lang.ts
 var StoreLayout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
 	__name: "StoreLayout",
 	__ssrInlineRender: true,
+	props: { homeOverlay: {
+		type: Boolean,
+		default: false
+	} },
 	setup(__props) {
+		const props = __props;
 		const page = usePage();
 		const menuOpen = ref(false);
 		const searchOpen = ref(false);
@@ -65,14 +70,17 @@ var StoreLayout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defi
 		onMounted(() => window.addEventListener("keydown", handleEscape));
 		onUnmounted(() => window.removeEventListener("keydown", handleEscape));
 		return (_ctx, _push, _parent, _attrs) => {
-			_push(`<!--[--><div class="ticker" aria-label="Безкоштовне брендоване пакування"><div class="ticker-track"><!--[-->`);
+			_push(`<!--[--><div class="${ssrRenderClass([{ "home-ticker-top": props.homeOverlay }, "ticker"])}" aria-label="Безкоштовне брендоване пакування"><div class="ticker-track"><!--[-->`);
 			ssrRenderList(4, (index) => {
-				_push(`<span>БЕЗКОШТОВНЕ БРЕНДОВАНЕ ПАКУВАННЯ</span>`);
+				_push(`<span>${ssrInterpolate(unref(page).props.homepage?.ticker_text || "БЕЗКОШТОВНЕ БРЕНДОВАНЕ ПАКУВАННЯ")}</span>`);
 			});
 			_push(`<!--]--></div></div>`);
 			if (headerPinned.value) _push(`<div class="site-header-placeholder" aria-hidden="true"></div>`);
 			else _push(`<!---->`);
-			_push(`<header class="${ssrRenderClass({ "is-pinned": headerPinned.value })}" style="${ssrRenderStyle(headerPinned.value ? { top: `${headerViewportOffset.value}px` } : void 0)}"><button class="menu-trigger desktop-menu-trigger">Каталог</button>`);
+			_push(`<header class="${ssrRenderClass({
+				"is-pinned": headerPinned.value,
+				"home-overlay-header": props.homeOverlay && !headerPinned.value
+			})}" style="${ssrRenderStyle(headerPinned.value ? { top: `${headerViewportOffset.value}px` } : void 0)}">`);
 			_push(ssrRenderComponent(unref(Link), {
 				href: "/",
 				class: "brand",
@@ -87,25 +95,69 @@ var StoreLayout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defi
 				}),
 				_: 1
 			}, _parent));
-			_push(`<nav class="header-actions"><a href="https://www.instagram.com/lamari.jewelry/" target="_blank" aria-label="Instagram" class="header-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg></a><button type="button" aria-label="Пошук у каталозі" class="header-icon"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"></circle><path d="m16 16 5 5"></path></svg></button>`);
+			_push(`<nav class="desktop-primary-nav" aria-label="Основна навігація">`);
+			_push(ssrRenderComponent(unref(Link), { href: "/catalog" }, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`Каталог`);
+					else return [createTextVNode("Каталог")];
+				}),
+				_: 1
+			}, _parent));
+			_push(ssrRenderComponent(unref(Link), { href: "/information/about" }, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`Про бренд`);
+					else return [createTextVNode("Про бренд")];
+				}),
+				_: 1
+			}, _parent));
+			_push(ssrRenderComponent(unref(Link), { href: "/information/delivery" }, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`Доставка і оплата`);
+					else return [createTextVNode("Доставка і оплата")];
+				}),
+				_: 1
+			}, _parent));
+			_push(ssrRenderComponent(unref(Link), { href: "/#faq" }, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`Поширені питання`);
+					else return [createTextVNode("Поширені питання")];
+				}),
+				_: 1
+			}, _parent));
+			_push(ssrRenderComponent(unref(Link), { href: "/information/cooperation" }, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`Співпраця`);
+					else return [createTextVNode("Співпраця")];
+				}),
+				_: 1
+			}, _parent));
+			_push(`</nav><nav class="header-actions"><a href="https://www.instagram.com/lamari.jewelry/" target="_blank" aria-label="Instagram" class="header-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg></a><button type="button" aria-label="Пошук у каталозі" class="header-icon"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"></circle><path d="m16 16 5 5"></path></svg></button>`);
 			_push(ssrRenderComponent(unref(Link), {
 				href: "/catalog",
 				"aria-label": `Обране: ${favoriteCount.value}`,
 				class: "header-icon icon-with-count"
 			}, {
 				default: withCtx((_, _push, _parent, _scopeId) => {
-					if (_push) {
-						_push(`<svg viewBox="0 0 24 24"${_scopeId}><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"${_scopeId}></path></svg>`);
-						if (favoriteCount.value) _push(`<small${_scopeId}>${ssrInterpolate(favoriteCount.value)}</small>`);
-						else _push(`<!---->`);
-					} else return [(openBlock(), createBlock("svg", { viewBox: "0 0 24 24" }, [createVNode("path", { d: "M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" })])), favoriteCount.value ? (openBlock(), createBlock("small", { key: 0 }, toDisplayString(favoriteCount.value), 1)) : createCommentVNode("", true)];
+					if (_push) _push(`<svg viewBox="0 0 24 24"${_scopeId}><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"${_scopeId}></path></svg><small${_scopeId}>${ssrInterpolate(favoriteCount.value)}</small>`);
+					else return [(openBlock(), createBlock("svg", { viewBox: "0 0 24 24" }, [createVNode("path", { d: "M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" })])), createVNode("small", null, toDisplayString(favoriteCount.value), 1)];
 				}),
 				_: 1
 			}, _parent));
-			_push(`<button class="cart-trigger header-icon icon-with-count" aria-label="Кошик"><svg viewBox="0 0 24 24"><path d="M5 8h14l1 13H4L5 8Z"></path><path d="M9 8V6a3 3 0 0 1 6 0v2"></path></svg>`);
-			if (unref(page).props.cartCount) _push(`<small>${ssrInterpolate(unref(page).props.cartCount)}</small>`);
-			else _push(`<!---->`);
-			_push(`</button><button class="menu-trigger mobile-menu-trigger header-icon" aria-label="Відкрити меню"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"></path></svg></button></nav></header><div class="${ssrRenderClass([{ open: searchOpen.value }, "search-overlay"])}"><form class="site-search" role="search"><div class="site-search-head"><strong>Пошук</strong><button type="button" aria-label="Закрити пошук">×</button></div><label for="site-search-input">Назва товару або артикул</label><div class="site-search-field"><input id="site-search-input"${ssrRenderAttr("value", searchQuery.value)} type="search" placeholder="Наприклад, кольє або K402-43" autocomplete="off"><button type="submit"${ssrIncludeBooleanAttr(!searchQuery.value.trim()) ? " disabled" : ""} aria-label="Знайти"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"></circle><path d="m16 16 5 5"></path></svg></button></div></form></div><div class="${ssrRenderClass([{ open: menuOpen.value }, "catalog-backdrop"])}"></div><aside class="${ssrRenderClass([{ open: menuOpen.value }, "catalog-drawer"])}" aria-label="Каталог"><div class="catalog-drawer-head">`);
+			_push(`<button class="cart-trigger header-icon icon-with-count" aria-label="Кошик"><svg viewBox="0 0 24 24"><path d="M5 8h14l1 13H4L5 8Z"></path><path d="M9 8V6a3 3 0 0 1 6 0v2"></path></svg><small>${ssrInterpolate(unref(page).props.cartCount || 0)}</small></button><button class="menu-trigger mobile-menu-trigger header-icon" aria-label="Відкрити меню"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"></path></svg></button></nav></header><nav class="desktop-category-nav" aria-label="Категорії товарів"><!--[-->`);
+			ssrRenderList(unref(page).props.catalogMenu, (category) => {
+				_push(ssrRenderComponent(unref(Link), {
+					key: category.id,
+					href: `/categories/${category.slug}`,
+					class: { sale: category.slug.toLowerCase() === "sale" }
+				}, {
+					default: withCtx((_, _push, _parent, _scopeId) => {
+						if (_push) _push(`${ssrInterpolate(category.name)}`);
+						else return [createTextVNode(toDisplayString(category.name), 1)];
+					}),
+					_: 2
+				}, _parent));
+			});
+			_push(`<!--]--></nav><div class="${ssrRenderClass([{ open: searchOpen.value }, "search-overlay"])}"><form class="site-search" role="search"><div class="site-search-head"><strong>Пошук</strong><button type="button" aria-label="Закрити пошук">×</button></div><label for="site-search-input">Назва товару або артикул</label><div class="site-search-field"><input id="site-search-input"${ssrRenderAttr("value", searchQuery.value)} type="search" placeholder="Наприклад, кольє або K402-43" autocomplete="off"><button type="submit"${ssrIncludeBooleanAttr(!searchQuery.value.trim()) ? " disabled" : ""} aria-label="Знайти"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"></circle><path d="m16 16 5 5"></path></svg></button></div></form></div><div class="${ssrRenderClass([{ open: menuOpen.value }, "catalog-backdrop"])}"></div><aside class="${ssrRenderClass([{ open: menuOpen.value }, "catalog-drawer"])}" aria-label="Каталог"><div class="catalog-drawer-head">`);
 			_push(ssrRenderComponent(unref(Link), {
 				href: "/",
 				class: "catalog-drawer-brand",

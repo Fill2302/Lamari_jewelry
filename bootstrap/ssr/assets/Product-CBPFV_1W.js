@@ -1,12 +1,15 @@
-import { t as StoreLayout_default } from "./StoreLayout-CI3WdeRz.js";
+import { t as StoreLayout_default } from "./StoreLayout-CqSO763L.js";
 import { Fragment, computed, createBlock, createCommentVNode, createTextVNode, createVNode, defineComponent, nextTick, onMounted, onUnmounted, openBlock, ref, renderList, resolveDynamicComponent, toDisplayString, unref, useSSRContext, withCtx, withModifiers } from "vue";
-import { Head, Link, useForm } from "@inertiajs/vue3";
+import { Head, Link, router, useForm } from "@inertiajs/vue3";
 import { ssrIncludeBooleanAttr, ssrInterpolate, ssrRenderAttr, ssrRenderClass, ssrRenderComponent, ssrRenderList, ssrRenderStyle, ssrRenderVNode } from "vue/server-renderer";
 //#region resources/js/Pages/Product.vue?vue&type=script&setup=true&lang.ts
 var Product_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
 	__name: "Product",
 	__ssrInlineRender: true,
-	props: { product: {} },
+	props: {
+		product: {},
+		recommendedProducts: {}
+	},
 	setup(__props) {
 		const p = __props;
 		const selected = ref(p.product.variants[0]?.id);
@@ -38,13 +41,20 @@ var Product_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCo
 		const gallery = ref(null);
 		const buyButton = ref(null);
 		const showStickyBuy = ref(false);
-		const isFavorite = ref(false);
-		const toggleFavorite = () => {
-			const favorites = JSON.parse(localStorage.getItem("lamari-favorites") || "[]");
-			const next = favorites.includes(p.product.id) ? favorites.filter((id) => id !== p.product.id) : [...favorites, p.product.id];
+		const favorites = ref([]);
+		const isFavorite = computed(() => favorites.value.includes(p.product.id));
+		const toggleFavorite = (productId = p.product.id) => {
+			const next = favorites.value.includes(productId) ? favorites.value.filter((id) => id !== productId) : [...favorites.value, productId];
 			localStorage.setItem("lamari-favorites", JSON.stringify(next));
-			isFavorite.value = next.includes(p.product.id);
+			favorites.value = next;
 			window.dispatchEvent(new Event("lamari-favorites"));
+		};
+		const relatedImage = (product) => asset(product.media?.find((item) => item.type === "image")?.url || product.image_url);
+		const relatedVariant = (product) => product.variants?.find((variant) => variant.is_active && variant.stock_on_hand > variant.stock_reserved);
+		const relatedPrice = (product) => relatedVariant(product)?.effective_price_amount ?? relatedVariant(product)?.price_amount ?? 0;
+		const addRelated = (product) => {
+			const variant = relatedVariant(product);
+			if (variant) router.post(`/cart/${variant.id}`, { quantity: 1 }, { preserveScroll: true });
 		};
 		const activeMedia = ref(0);
 		const zoomKey = ref(null);
@@ -135,13 +145,19 @@ var Product_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCo
 			}, 80);
 		};
 		const updateStickyBuy = () => {
-			showStickyBuy.value = Boolean(buyButton.value && buyButton.value.getBoundingClientRect().bottom < 0);
+			if (!buyButton.value) {
+				showStickyBuy.value = false;
+				return;
+			}
+			const buttonTop = buyButton.value.getBoundingClientRect().top;
+			const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
+			showStickyBuy.value = buttonTop <= headerBottom;
 		};
 		onMounted(() => {
 			try {
-				isFavorite.value = JSON.parse(localStorage.getItem("lamari-favorites") || "[]").includes(p.product.id);
+				favorites.value = JSON.parse(localStorage.getItem("lamari-favorites") || "[]");
 			} catch {
-				isFavorite.value = false;
+				favorites.value = [];
 			}
 			nextTick(() => {
 				if (media.value.length > 1) scrollToPhysical(1);
@@ -161,6 +177,28 @@ var Product_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCo
 			if (!compareAtPrice.value || !currentPrice.value || compareAtPrice.value <= currentPrice.value) return "";
 			return p.product.catalog_badges?.find((badge) => badge.type === "sale")?.label || `-${Math.round((1 - currentPrice.value / compareAtPrice.value) * 100)}%`;
 		});
+		const productFaqs = [
+			{
+				question: "Яка гарантія на вироби?",
+				answer: "На всі прикраси LAMARI діє гарантія 1 місяць. Якщо протягом цього часу виявиться виробничий дефект, ми безкоштовно відремонтуємо або замінимо виріб. Гарантія не поширюється на механічні пошкодження та пошкодження через недотримання рекомендацій із догляду."
+			},
+			{
+				question: "Чи можу я обміняти або повернути товар?",
+				answer: "Так, ви можете обміняти товар на інший або повернути його протягом 14 днів із моменту отримання."
+			},
+			{
+				question: "Чи можна мочити прикраси?",
+				answer: "Прикраси з ювелірної сталі можна мочити та носити не знімаючи. Прикраси з покриттям золотом або родієм рекомендуємо знімати перед душем, морем чи басейном, щоб вони якомога довше зберігали свій початковий вигляд."
+			},
+			{
+				question: "Чи темніють прикраси?",
+				answer: "Наші прикраси не темніють. За умови дотримання рекомендацій із догляду та правильного зберігання вони довго зберігатимуть свій початковий вигляд."
+			}
+		];
+		const toggleDetails = (event) => {
+			const details = event.currentTarget?.closest("details");
+			if (details instanceof HTMLDetailsElement) details.open = !details.open;
+		};
 		const schema = {
 			"@context": "https://schema.org",
 			"@type": "Product",
@@ -258,11 +296,46 @@ var Product_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCo
 						ssrRenderList(__props.product.variants, (v) => {
 							_push(`<button class="${ssrRenderClass({ active: selected.value === v.id })}"${_scopeId}>${ssrInterpolate(v.name)}</button>`);
 						});
-						_push(`<!--]--></div></label><button class="button buy"${ssrIncludeBooleanAttr(unref(form).processing || !selected.value) ? " disabled" : ""}${_scopeId}>Додати в кошик</button><div class="product-benefits"${_scopeId}><span${_scopeId}>Безкоштовне брендоване пакування</span><span${_scopeId}>Відправлення 1–2 робочі дні</span></div><details open${_scopeId}><summary${_scopeId}>Характеристики</summary><dl${_scopeId}><!--[-->`);
+						_push(`<!--]--></div></label><button class="button buy"${ssrIncludeBooleanAttr(unref(form).processing || !selected.value) ? " disabled" : ""}${_scopeId}>Додати в кошик</button><div class="product-benefits"${_scopeId}><span${_scopeId}>Безкоштовне брендоване пакування</span><span${_scopeId}>Відправлення 1–2 робочі дні</span></div>`);
+						if (__props.recommendedProducts.length) {
+							_push(`<section class="complete-look" aria-labelledby="complete-look-title"${_scopeId}><h2 id="complete-look-title"${_scopeId}>Доповнити образ</h2><div class="complete-look-grid"${_scopeId}><!--[-->`);
+							ssrRenderList(__props.recommendedProducts, (item) => {
+								_push(`<article class="complete-look-card"${_scopeId}><div class="complete-look-image"${_scopeId}>`);
+								_push(ssrRenderComponent(unref(Link), { href: `/products/${item.slug}` }, {
+									default: withCtx((_, _push, _parent, _scopeId) => {
+										if (_push) _push(`<img${ssrRenderAttr("src", relatedImage(item))}${ssrRenderAttr("alt", item.name)} loading="lazy"${_scopeId}>`);
+										else return [createVNode("img", {
+											src: relatedImage(item),
+											alt: item.name,
+											loading: "lazy"
+										}, null, 8, ["src", "alt"])];
+									}),
+									_: 2
+								}, _parent, _scopeId));
+								_push(`<button type="button" class="${ssrRenderClass({ active: favorites.value.includes(item.id) })}"${ssrRenderAttr("aria-label", favorites.value.includes(item.id) ? "Видалити з обраного" : "Додати в обране")}${_scopeId}><svg viewBox="0 0 24 24"${_scopeId}><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"${_scopeId}></path></svg></button></div>`);
+								_push(ssrRenderComponent(unref(Link), {
+									href: `/products/${item.slug}`,
+									class: "complete-look-name"
+								}, {
+									default: withCtx((_, _push, _parent, _scopeId) => {
+										if (_push) _push(`${ssrInterpolate(item.name)}`);
+										else return [createTextVNode(toDisplayString(item.name), 1)];
+									}),
+									_: 2
+								}, _parent, _scopeId));
+								_push(`<p${_scopeId}>${ssrInterpolate((relatedPrice(item) / 100).toLocaleString("uk-UA"))} ₴</p><button type="button" class="complete-look-add"${ssrIncludeBooleanAttr(!relatedVariant(item)) ? " disabled" : ""}${_scopeId}>Додати в кошик</button></article>`);
+							});
+							_push(`<!--]--></div></section>`);
+						} else _push(`<!---->`);
+						_push(`<details open${_scopeId}><summary${_scopeId}>Характеристики</summary><dl${_scopeId}><!--[-->`);
 						ssrRenderList(__props.product.characteristics, (value, key) => {
 							_push(`<!--[--><dt${_scopeId}>${ssrInterpolate(key)}</dt><dd${_scopeId}>${ssrInterpolate(value)}</dd><!--]-->`);
 						});
-						_push(`<!--]--><dt${_scopeId}>Матеріал</dt><dd${_scopeId}>${ssrInterpolate(__props.product.material)}</dd></dl></details><details${_scopeId}><summary${_scopeId}>Опис товару</summary><p${_scopeId}>${ssrInterpolate(__props.product.description)}</p></details><details${_scopeId}><summary${_scopeId}>Упаковка</summary><p${_scopeId}>${ssrInterpolate(__props.product.packaging_text)}</p></details><details${_scopeId}><summary${_scopeId}>Догляд</summary><p${_scopeId}>${ssrInterpolate(__props.product.care_text)}</p></details><details${_scopeId}><summary${_scopeId}>Доставка та оплата</summary><p${_scopeId}>${ssrInterpolate(__props.product.delivery_payment_text || "Доставка Україною та за кордон. Точний спосіб і вартість будуть доступні під час оформлення.")}</p></details></aside></section>`);
+						_push(`<!--]--><dt${_scopeId}>Матеріал</dt><dd${_scopeId}>${ssrInterpolate(__props.product.material)}</dd></dl></details><details${_scopeId}><summary${_scopeId}>Опис товару</summary><p${_scopeId}>${ssrInterpolate(__props.product.description)}</p></details><details${_scopeId}><summary${_scopeId}>Упаковка</summary><p${_scopeId}>${ssrInterpolate(__props.product.packaging_text)}</p><img class="packaging-image"${ssrRenderAttr("src", "/images/product/lamari-packaging.webp")} alt="Подарункова брендована упаковка Lamari" loading="lazy"${_scopeId}></details><details${_scopeId}><summary${_scopeId}>Догляд</summary><p${_scopeId}>${ssrInterpolate(__props.product.care_text)}</p></details><details${_scopeId}><summary${_scopeId}>Доставка та оплата</summary><p${_scopeId}>${ssrInterpolate(__props.product.delivery_payment_text || "Доставка Україною та за кордон. Точний спосіб і вартість будуть доступні під час оформлення.")}</p></details><!--[-->`);
+						ssrRenderList(productFaqs, (faq) => {
+							_push(`<details class="product-faq"${_scopeId}><summary${_scopeId}>${ssrInterpolate(faq.question)}</summary><p${_scopeId}>${ssrInterpolate(faq.answer)}</p></details>`);
+						});
+						_push(`<!--]--></aside></section>`);
 						if (showStickyBuy.value) {
 							_push(`<div class="sticky-buy-bar"${_scopeId}><strong class="sticky-product-price"${_scopeId}>`);
 							if (compareAtPrice.value) _push(`<del${_scopeId}>${ssrInterpolate((compareAtPrice.value / 100).toLocaleString("uk-UA"))} ₴</del>`);
@@ -352,8 +425,8 @@ var Product_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCo
 							createVNode("button", {
 								class: ["product-favorite", { active: isFavorite.value }],
 								"aria-label": isFavorite.value ? "Видалити з обраного" : "Додати в обране",
-								onClick: toggleFavorite
-							}, [(openBlock(), createBlock("svg", { viewBox: "0 0 24 24" }, [createVNode("path", { d: "M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" })]))], 10, ["aria-label"]),
+								onClick: ($event) => toggleFavorite()
+							}, [(openBlock(), createBlock("svg", { viewBox: "0 0 24 24" }, [createVNode("path", { d: "M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" })]))], 10, ["aria-label", "onClick"]),
 							createVNode("h1", null, toDisplayString(__props.product.name), 1),
 							createVNode("p", { class: "sku" }, [createTextVNode("Артикул " + toDisplayString(selectedVariant.value?.sku) + " · ", 1), createVNode("span", { class: "in-stock" }, "В наявності")]),
 							createVNode("p", { class: ["price", { "product-sale-price": compareAtPrice.value }] }, [compareAtPrice.value ? (openBlock(), createBlock("del", { key: 0 }, toDisplayString((compareAtPrice.value / 100).toLocaleString("uk-UA")) + " ₴", 1)) : createCommentVNode("", true), createVNode("span", null, toDisplayString((currentPrice.value / 100).toLocaleString("uk-UA")) + " ₴", 1)], 2),
@@ -372,17 +445,70 @@ var Product_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCo
 								disabled: unref(form).processing || !selected.value
 							}, "Додати в кошик", 8, ["disabled"]),
 							createVNode("div", { class: "product-benefits" }, [createVNode("span", null, "Безкоштовне брендоване пакування"), createVNode("span", null, "Відправлення 1–2 робочі дні")]),
-							createVNode("details", { open: "" }, [createVNode("summary", null, "Характеристики"), createVNode("dl", null, [
+							__props.recommendedProducts.length ? (openBlock(), createBlock("section", {
+								key: 0,
+								class: "complete-look",
+								"aria-labelledby": "complete-look-title"
+							}, [createVNode("h2", { id: "complete-look-title" }, "Доповнити образ"), createVNode("div", { class: "complete-look-grid" }, [(openBlock(true), createBlock(Fragment, null, renderList(__props.recommendedProducts, (item) => {
+								return openBlock(), createBlock("article", {
+									key: item.id,
+									class: "complete-look-card"
+								}, [
+									createVNode("div", { class: "complete-look-image" }, [createVNode(unref(Link), { href: `/products/${item.slug}` }, {
+										default: withCtx(() => [createVNode("img", {
+											src: relatedImage(item),
+											alt: item.name,
+											loading: "lazy"
+										}, null, 8, ["src", "alt"])]),
+										_: 2
+									}, 1032, ["href"]), createVNode("button", {
+										type: "button",
+										class: { active: favorites.value.includes(item.id) },
+										"aria-label": favorites.value.includes(item.id) ? "Видалити з обраного" : "Додати в обране",
+										onClick: ($event) => toggleFavorite(item.id)
+									}, [(openBlock(), createBlock("svg", { viewBox: "0 0 24 24" }, [createVNode("path", { d: "M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" })]))], 10, ["aria-label", "onClick"])]),
+									createVNode(unref(Link), {
+										href: `/products/${item.slug}`,
+										class: "complete-look-name"
+									}, {
+										default: withCtx(() => [createTextVNode(toDisplayString(item.name), 1)]),
+										_: 2
+									}, 1032, ["href"]),
+									createVNode("p", null, toDisplayString((relatedPrice(item) / 100).toLocaleString("uk-UA")) + " ₴", 1),
+									createVNode("button", {
+										type: "button",
+										class: "complete-look-add",
+										disabled: !relatedVariant(item),
+										onClick: ($event) => addRelated(item)
+									}, "Додати в кошик", 8, ["disabled", "onClick"])
+								]);
+							}), 128))])])) : createCommentVNode("", true),
+							createVNode("details", { open: "" }, [createVNode("summary", { onClick: withModifiers(toggleDetails, ["prevent"]) }, "Характеристики"), createVNode("dl", null, [
 								(openBlock(true), createBlock(Fragment, null, renderList(__props.product.characteristics, (value, key) => {
 									return openBlock(), createBlock(Fragment, null, [createVNode("dt", null, toDisplayString(key), 1), createVNode("dd", null, toDisplayString(value), 1)], 64);
 								}), 256)),
 								createVNode("dt", null, "Матеріал"),
 								createVNode("dd", null, toDisplayString(__props.product.material), 1)
 							])]),
-							createVNode("details", null, [createVNode("summary", null, "Опис товару"), createVNode("p", null, toDisplayString(__props.product.description), 1)]),
-							createVNode("details", null, [createVNode("summary", null, "Упаковка"), createVNode("p", null, toDisplayString(__props.product.packaging_text), 1)]),
-							createVNode("details", null, [createVNode("summary", null, "Догляд"), createVNode("p", null, toDisplayString(__props.product.care_text), 1)]),
-							createVNode("details", null, [createVNode("summary", null, "Доставка та оплата"), createVNode("p", null, toDisplayString(__props.product.delivery_payment_text || "Доставка Україною та за кордон. Точний спосіб і вартість будуть доступні під час оформлення."), 1)])
+							createVNode("details", null, [createVNode("summary", { onClick: withModifiers(toggleDetails, ["prevent"]) }, "Опис товару"), createVNode("p", null, toDisplayString(__props.product.description), 1)]),
+							createVNode("details", null, [
+								createVNode("summary", { onClick: withModifiers(toggleDetails, ["prevent"]) }, "Упаковка"),
+								createVNode("p", null, toDisplayString(__props.product.packaging_text), 1),
+								createVNode("img", {
+									class: "packaging-image",
+									src: "/images/product/lamari-packaging.webp",
+									alt: "Подарункова брендована упаковка Lamari",
+									loading: "lazy"
+								})
+							]),
+							createVNode("details", null, [createVNode("summary", { onClick: withModifiers(toggleDetails, ["prevent"]) }, "Догляд"), createVNode("p", null, toDisplayString(__props.product.care_text), 1)]),
+							createVNode("details", null, [createVNode("summary", { onClick: withModifiers(toggleDetails, ["prevent"]) }, "Доставка та оплата"), createVNode("p", null, toDisplayString(__props.product.delivery_payment_text || "Доставка Україною та за кордон. Точний спосіб і вартість будуть доступні під час оформлення."), 1)]),
+							(openBlock(), createBlock(Fragment, null, renderList(productFaqs, (faq) => {
+								return createVNode("details", {
+									key: faq.question,
+									class: "product-faq"
+								}, [createVNode("summary", { onClick: withModifiers(toggleDetails, ["prevent"]) }, toDisplayString(faq.question), 1), createVNode("p", null, toDisplayString(faq.answer), 1)]);
+							}), 64))
 						])]),
 						showStickyBuy.value ? (openBlock(), createBlock("div", {
 							key: 0,

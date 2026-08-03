@@ -181,6 +181,10 @@ const productFaqs = [
     answer: 'Наші прикраси не темніють. За умови дотримання рекомендацій із догляду та правильного зберігання вони довго зберігатимуть свій початковий вигляд.',
   },
 ];
+const toggleDetails = (event: MouseEvent) => {
+  const details = (event.currentTarget as HTMLElement | null)?.closest('details');
+  if (details instanceof HTMLDetailsElement) details.open = !details.open;
+};
 const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.product.name, image: media.value.filter((m:any)=>m.type==='image').map((m:any)=>asset(m.url)), description: p.product.description, sku: p.product.variants[0]?.sku, offers: { '@type': 'Offer', priceCurrency: 'UAH', price: (p.product.variants[0]?.effective_price_amount ?? p.product.variants[0]?.price_amount) / 100, availability: 'https://schema.org/InStock' } };
 </script>
 
@@ -266,12 +270,12 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
             </article>
           </div>
         </section>
-        <details open><summary>Характеристики</summary><dl><template v-for="(value,key) in product.characteristics"><dt>{{ key }}</dt><dd>{{ value }}</dd></template><dt>Матеріал</dt><dd>{{ product.material }}</dd></dl></details>
-        <details><summary>Опис товару</summary><p>{{ product.description }}</p></details>
-        <details><summary>Упаковка</summary><p>{{ product.packaging_text }}</p><img class="packaging-image" :src="'/images/product/lamari-packaging.webp'" alt="Подарункова брендована упаковка Lamari" loading="lazy"></details>
-        <details><summary>Догляд</summary><p>{{ product.care_text }}</p></details>
-        <details><summary>Доставка та оплата</summary><p>{{ product.delivery_payment_text || 'Доставка Україною та за кордон. Точний спосіб і вартість будуть доступні під час оформлення.' }}</p></details>
-        <details v-for="faq in productFaqs" :key="faq.question" class="product-faq"><summary>{{ faq.question }}</summary><p>{{ faq.answer }}</p></details>
+        <details open><summary @click.prevent="toggleDetails">Характеристики</summary><dl><template v-for="(value,key) in product.characteristics"><dt>{{ key }}</dt><dd>{{ value }}</dd></template><dt>Матеріал</dt><dd>{{ product.material }}</dd></dl></details>
+        <details><summary @click.prevent="toggleDetails">Опис товару</summary><p>{{ product.description }}</p></details>
+        <details><summary @click.prevent="toggleDetails">Упаковка</summary><p>{{ product.packaging_text }}</p><img class="packaging-image" :src="'/images/product/lamari-packaging.webp'" alt="Подарункова брендована упаковка Lamari" loading="lazy"></details>
+        <details><summary @click.prevent="toggleDetails">Догляд</summary><p>{{ product.care_text }}</p></details>
+        <details><summary @click.prevent="toggleDetails">Доставка та оплата</summary><p>{{ product.delivery_payment_text || 'Доставка Україною та за кордон. Точний спосіб і вартість будуть доступні під час оформлення.' }}</p></details>
+        <details v-for="faq in productFaqs" :key="faq.question" class="product-faq"><summary @click.prevent="toggleDetails">{{ faq.question }}</summary><p>{{ faq.answer }}</p></details>
       </aside>
     </section>
     <div v-if="showStickyBuy" class="sticky-buy-bar">
