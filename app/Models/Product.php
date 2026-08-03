@@ -45,6 +45,7 @@ class Product extends Model
             'published_at' => 'datetime',
             'characteristics' => 'array',
             'catalog_badges' => 'array',
+            'size_guide_enabled' => 'boolean',
         ];
     }
 

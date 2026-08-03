@@ -55,6 +55,8 @@ class DatabaseSeeder extends Seeder
             'characteristics' => ['Матеріал фурнітури' => 'Латунь', 'Покриття' => 'Позолота 18к', 'Тип застібки' => 'Тогл з фіанітами'],
             'packaging_text' => 'Безкоштовно пакуємо у подарункову брендовану коробочку — для отримання, дарування та зберігання прикрас.',
             'care_text' => 'Прикраси з латуні рекомендуємо знімати перед душем, морем або басейном та зберігати в сухому місці.',
+            'size_guide_enabled' => true,
+            'size_guide_type' => 'necklace',
             'image_url' => 'products/crystal-pearl-necklace-1.webp',
             'seo_title' => 'Кольє з кришталю та перлин — Lamari Jewelry',
             'seo_description' => 'Ніжне авторське кольє Lamari з натуральних перлин та прозорого кришталю.',

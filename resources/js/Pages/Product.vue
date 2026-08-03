@@ -215,8 +215,7 @@ const sizeGuideKind = computed(() => {
   if (slug === 'rings') return 'ring';
   return null;
 });
-const hasSizeVariants = computed(() => p.product.variants.some((variant: any) => /^\d+(?:[.,]\d+)?(?:\s*см)?$/iu.test(variant.name?.trim() || '')));
-const showSizeGuide = computed(() => Boolean(p.product.size_guide_type || (sizeGuideKind.value && hasSizeVariants.value)));
+const showSizeGuide = computed(() => Boolean(p.product.size_guide_enabled && sizeGuideKind.value));
 const sizeGuideLabel = computed(() => {
   const label = p.product.size_guide_label?.trim() || '';
   return /^Виберіть розмір:?$/iu.test(label) ? '' : label;

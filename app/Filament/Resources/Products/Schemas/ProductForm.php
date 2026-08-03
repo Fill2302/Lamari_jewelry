@@ -67,6 +67,30 @@ class ProductForm
                     ->columnSpanFull(),
                 Textarea::make('packaging_text')->columnSpanFull(),
                 Textarea::make('care_text')->columnSpanFull(),
+                Toggle::make('size_guide_enabled')
+                    ->label('Показувати підказку «Як визначити розмір»')
+                    ->helperText('Увімкніть для товарів, у яких покупець обирає довжину або розмір.')
+                    ->live()
+                    ->default(false)
+                    ->columnSpanFull(),
+                Select::make('size_guide_type')
+                    ->label('Тип підказки розміру')
+                    ->options([
+                        'necklace' => 'Кольє, чокер або ланцюжок',
+                        'bracelet' => 'Браслет або анклет',
+                        'ring' => 'Каблучка',
+                    ])
+                    ->required(fn (Get $get): bool => (bool) $get('size_guide_enabled'))
+                    ->visible(fn (Get $get): bool => (bool) $get('size_guide_enabled')),
+                TextInput::make('size_guide_label')
+                    ->label('Напис над варіантами розміру')
+                    ->placeholder('Залиште порожнім, щоб показувати лише посилання')
+                    ->helperText('Можна ввести власний напис або вибрати один із запропонованих.')
+                    ->datalist([
+                        'Виберіть розмір + 6 см подовжувач:',
+                        'Виберіть розмір впритул:',
+                    ])
+                    ->visible(fn (Get $get): bool => (bool) $get('size_guide_enabled')),
                 Textarea::make('delivery_payment_text')
                     ->label('Доставка та оплата')
                     ->columnSpanFull(),

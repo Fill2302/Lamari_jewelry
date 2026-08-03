@@ -59,10 +59,10 @@ class SyncLegacySizeGuides extends Command
         return $failed === 0 ? self::SUCCESS : self::FAILURE;
     }
 
-    /** @return array{size_guide_label: ?string, size_guide_type: ?string} */
+    /** @return array{size_guide_label: ?string, size_guide_type: ?string, size_guide_enabled: bool} */
     private function sizeGuideData(string $html): array
     {
-        $dom = new DOMDocument();
+        $dom = new DOMDocument;
         @$dom->loadHTML('<?xml encoding="utf-8" ?>'.$html, LIBXML_NOERROR | LIBXML_NOWARNING);
         $xpath = new DOMXPath($dom);
         $node = $xpath->query('//div[contains(concat(" ",normalize-space(@class)," ")," choosesize ")]')?->item(0);
@@ -81,6 +81,7 @@ class SyncLegacySizeGuides extends Command
         return [
             'size_guide_label' => $label !== '' ? $label : null,
             'size_guide_type' => $type,
+            'size_guide_enabled' => $type !== null,
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
@@ -118,7 +119,7 @@ class ImportLegacyCatalog extends Command
     /** @return array<string, mixed> */
     private function parseProduct(string $url, string $html): array
     {
-        $dom = new DOMDocument();
+        $dom = new DOMDocument;
         @$dom->loadHTML('<?xml encoding="utf-8" ?>'.$html, LIBXML_NOERROR | LIBXML_NOWARNING);
         $xpath = new DOMXPath($dom);
         $sourceId = $this->sourceId($url);
@@ -196,7 +197,7 @@ class ImportLegacyCatalog extends Command
     }
 
     /** @param array<string, mixed> $data
-     *  @return array{status: string, images: int}
+     * @return array{status: string, images: int}
      */
     private function persist(array $data): array
     {
@@ -222,6 +223,7 @@ class ImportLegacyCatalog extends Command
                     'delivery_payment_text' => $data['delivery'] ?: null,
                     'size_guide_label' => $data['sizeGuideLabel'],
                     'size_guide_type' => $data['sizeGuideType'],
+                    'size_guide_enabled' => $data['sizeGuideType'] !== null,
                     'image_url' => $localImages[0] ?? null,
                     'seo_title' => $data['name'].' — Lamari Jewelry',
                     'seo_description' => Str::limit($data['description'] ?: $data['name'], 155, ''),
@@ -300,7 +302,7 @@ class ImportLegacyCatalog extends Command
     }
 
     /** @param list<string> $urls
-     *  @return list<string>
+     * @return list<string>
      */
     private function storeImages(int $sourceId, array $urls): array
     {
@@ -334,7 +336,7 @@ class ImportLegacyCatalog extends Command
 
     private function uniqueSku(string $sku, int $sourceId): string
     {
-        return \App\Models\ProductVariant::where('sku', $sku)->exists() ? "{$sku}-{$sourceId}" : $sku;
+        return ProductVariant::where('sku', $sku)->exists() ? "{$sku}-{$sourceId}" : $sku;
     }
 
     private function text(DOMXPath $xpath, string $query): string
