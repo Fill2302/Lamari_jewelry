@@ -176,11 +176,22 @@ class ImportLegacyCatalog extends Command
         $description = $this->cleanText($this->accordion($xpath, 'Опис товару')?->textContent ?? '');
         $packaging = $this->cleanText($this->accordion($xpath, 'Упаковка')?->textContent ?? '');
         $delivery = $this->cleanText($this->accordion($xpath, 'Доставка та оплата')?->textContent ?? '');
+        $sizeGuideLabel = $this->text($xpath, '//div[contains(concat(" ",normalize-space(@class)," ")," choosesize ")]') ?: null;
+        $hasSizeGuide = $xpath->query('//div[contains(concat(" ",normalize-space(@class)," ")," sizegroup ")]//a[@data-bs-target="#size_group"]')?->length > 0;
+        $sizeGuideHeading = $hasSizeGuide
+            ? $this->text($xpath, '//div[contains(concat(" ",normalize-space(@class)," ")," sizebody ")]//div[contains(concat(" ",normalize-space(@class)," ")," charcontainer ") and contains(concat(" ",normalize-space(@class)," ")," active ")]//span[contains(concat(" ",normalize-space(@class)," ")," charsnames ")]')
+            : '';
+        $sizeGuideType = match (true) {
+            preg_match('/браслет/iu', $sizeGuideHeading) === 1 => 'bracelet',
+            preg_match('/кільц|каблуч/iu', $sizeGuideHeading) === 1 => 'ring',
+            preg_match('/кольє|ланцюж|чокер/iu', $sizeGuideHeading) === 1 => 'necklace',
+            default => null,
+        };
         $slug = trim(basename((string) parse_url($url, PHP_URL_PATH)));
 
         return compact(
             'sourceId', 'url', 'name', 'slug', 'price', 'article', 'categoryNames',
-            'images', 'variants', 'characteristics', 'description', 'packaging', 'delivery'
+            'images', 'variants', 'characteristics', 'description', 'packaging', 'delivery', 'sizeGuideLabel', 'sizeGuideType'
         );
     }
 
@@ -209,6 +220,8 @@ class ImportLegacyCatalog extends Command
                     'characteristics' => $data['characteristics'],
                     'packaging_text' => $data['packaging'] ?: null,
                     'delivery_payment_text' => $data['delivery'] ?: null,
+                    'size_guide_label' => $data['sizeGuideLabel'],
+                    'size_guide_type' => $data['sizeGuideType'],
                     'image_url' => $localImages[0] ?? null,
                     'seo_title' => $data['name'].' — Lamari Jewelry',
                     'seo_description' => Str::limit($data['description'] ?: $data['name'], 155, ''),

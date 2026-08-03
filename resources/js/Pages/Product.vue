@@ -207,6 +207,40 @@ const productFaqs = computed(() => [
 ]);
 const deliveryPaymentText = computed(() => [productCardSetting.value.delivery_text, productCardSetting.value.payment_text]);
 const careText = computed(() => p.product.care_text?.trim() || productCardSetting.value.care_text);
+const sizeGuideKind = computed(() => {
+  if (['necklace', 'bracelet', 'ring'].includes(p.product.size_guide_type)) return p.product.size_guide_type;
+  const slug = p.product.category?.parent?.slug || p.product.category?.slug;
+  if (['necklaces', 'chokers', 'chains'].includes(slug)) return 'necklace';
+  if (['bracelets', 'anklets'].includes(slug)) return 'bracelet';
+  if (slug === 'rings') return 'ring';
+  return null;
+});
+const hasSizeVariants = computed(() => p.product.variants.some((variant: any) => /^\d+(?:[.,]\d+)?(?:\s*см)?$/iu.test(variant.name?.trim() || '')));
+const showSizeGuide = computed(() => Boolean(p.product.size_guide_type || (sizeGuideKind.value && hasSizeVariants.value)));
+const sizeGuideLabel = computed(() => {
+  const label = p.product.size_guide_label?.trim() || '';
+  return /^Виберіть розмір:?$/iu.test(label) ? '' : label;
+});
+const sizeGuideContent = computed(() => ({
+  necklace: {
+    title: 'Як визначити розмір кольє або ланцюжка',
+    text: 'Зробити це нескладно в домашніх умовах. Оберніть нитку навколо шиї та зафіксуйте її на потрібному місці. Зробіть позначку й прикладіть нитку до лінійки. Або виміряйте шию впритул сантиметровою стрічкою. До отриманого значення додайте 10 см — так ви отримаєте комфортний розмір кольє.',
+    image: '/images/product/necklace-size-guide.jpg',
+    alt: 'Як виміряти обхват шиї сантиметровою стрічкою',
+  },
+  bracelet: {
+    title: 'Як визначити розмір браслета',
+    text: 'Виміряйте зап’ястя впритул за виступаючою кісточкою сантиметром або звичайною ниткою. Якщо вимірювали ниткою, прикладіть її до лінійки та оберіть відповідний розмір. Необхідний запас ми додамо самі залежно від обраного виробу.',
+    image: '/images/product/bracelet-size-guide.jpg',
+    alt: 'Як виміряти обхват зап’ястя',
+  },
+  ring: {
+    title: 'Як визначити розмір каблучки',
+    text: 'Виміряйте внутрішній діаметр каблучки, яка вам підходить, або обгорніть палець ниткою без надмірного натягу. Виміряйте отриману довжину лінійкою та звірте її з розмірною підказкою.',
+    image: '/images/product/ring-size-guide.jpg',
+    alt: 'Як визначити розмір каблучки',
+  },
+}[sizeGuideKind.value || 'necklace']));
 const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.product.name, image: media.value.filter((m:any)=>m.type==='image').map((m:any)=>asset(m.url)), description: p.product.description, sku: productSku.value, offers: { '@type': 'Offer', priceCurrency: 'UAH', price: (p.product.variants[0]?.effective_price_amount ?? p.product.variants[0]?.price_amount) / 100, availability: 'https://schema.org/InStock' } };
 </script>
 
@@ -271,8 +305,8 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
           <del v-if="compareAtPrice">{{ (compareAtPrice / 100).toLocaleString('uk-UA') }} ₴</del>
           <span>{{ (currentPrice / 100).toLocaleString('uk-UA') }} ₴</span>
         </p>
-        <div class="product-size-guide">
-          <p>Виберіть розмір + 6 см подовжувач:</p>
+        <div v-if="showSizeGuide" class="product-size-guide">
+          <p v-if="sizeGuideLabel">{{ sizeGuideLabel }}</p>
           <button type="button" @click="sizeGuideOpen = true">Як визначити розмір</button>
         </div>
         <span class="visually-hidden">Оберіть розмір</span>
@@ -314,9 +348,9 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
       <div v-if="sizeGuideOpen" class="size-guide-overlay" role="presentation" tabindex="-1" autofocus @click.self="sizeGuideOpen = false" @keydown.esc="sizeGuideOpen = false">
         <section class="size-guide-modal" role="dialog" aria-modal="true" aria-labelledby="size-guide-title">
           <button type="button" class="size-guide-close" aria-label="Закрити" @click="sizeGuideOpen = false">×</button>
-          <h2 id="size-guide-title">Як визначити розмір кольє або ланцюжка</h2>
-          <p>Зробити це нескладно в домашніх умовах. Оберніть нитку навколо шиї та зафіксуйте її на потрібному місці. Зробіть позначку й прикладіть нитку до лінійки. Або виміряйте шию впритул сантиметровою стрічкою. До отриманого значення додайте 10 см — так ви отримаєте комфортний розмір кольє.</p>
-          <img :src="'/images/product/necklace-size-guide.jpg'" alt="Як виміряти обхват шиї сантиметровою стрічкою" loading="lazy">
+          <h2 id="size-guide-title">{{ sizeGuideContent.title }}</h2>
+          <p>{{ sizeGuideContent.text }}</p>
+          <img :src="sizeGuideContent.image" :alt="sizeGuideContent.alt" loading="lazy">
         </section>
       </div>
     </Teleport>
