@@ -204,10 +204,6 @@ const productFaqs = computed(() => [
   },
 ]);
 const deliveryPaymentText = computed(() => [productCardSetting.value.delivery_text, productCardSetting.value.payment_text]);
-const toggleDetails = (event: MouseEvent) => {
-  const details = (event.currentTarget as HTMLElement | null)?.closest('details');
-  if (details instanceof HTMLDetailsElement) details.open = !details.open;
-};
 const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.product.name, image: media.value.filter((m:any)=>m.type==='image').map((m:any)=>asset(m.url)), description: p.product.description, sku: productSku.value, offers: { '@type': 'Offer', priceCurrency: 'UAH', price: (p.product.variants[0]?.effective_price_amount ?? p.product.variants[0]?.price_amount) / 100, availability: 'https://schema.org/InStock' } };
 </script>
 
@@ -293,12 +289,12 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
             </article>
           </div>
         </section>
-        <details open><summary @click.prevent="toggleDetails">{{ productCardSetting.characteristics_title }}</summary><dl><template v-for="(value,key) in product.characteristics"><dt>{{ key }}</dt><dd>{{ value }}</dd></template><dt>Матеріал</dt><dd>{{ product.material }}</dd></dl></details>
-        <details><summary @click.prevent="toggleDetails">{{ productCardSetting.description_title }}</summary><p>{{ product.description }}</p></details>
-        <details><summary @click.prevent="toggleDetails">{{ productCardSetting.packaging_title }}</summary><p>{{ product.packaging_text }}</p><img class="packaging-image" :src="'/images/product/lamari-packaging.webp'" alt="Подарункова брендована упаковка Lamari" loading="lazy"></details>
-        <details><summary @click.prevent="toggleDetails">{{ productCardSetting.care_title }}</summary><p>{{ product.care_text }}</p></details>
-        <details><summary @click.prevent="toggleDetails">{{ productCardSetting.delivery_payment_title }}</summary><p v-for="paragraph in deliveryPaymentText" :key="paragraph">{{ paragraph }}</p></details>
-        <details v-for="faq in productFaqs" :key="faq.question" class="product-faq"><summary @click.prevent="toggleDetails">{{ faq.question }}</summary><p>{{ faq.answer }}</p></details>
+        <details open><summary>{{ productCardSetting.characteristics_title }}</summary><dl><template v-for="(value,key) in product.characteristics"><dt>{{ key }}</dt><dd>{{ value }}</dd></template><dt>Матеріал</dt><dd>{{ product.material }}</dd></dl></details>
+        <details><summary>{{ productCardSetting.description_title }}</summary><p>{{ product.description }}</p></details>
+        <details><summary>{{ productCardSetting.packaging_title }}</summary><p>{{ product.packaging_text }}</p><img class="packaging-image" :src="'/images/product/lamari-packaging.webp'" alt="Подарункова брендована упаковка Lamari" loading="lazy"></details>
+        <details><summary>{{ productCardSetting.care_title }}</summary><p>{{ product.care_text }}</p></details>
+        <details><summary>{{ productCardSetting.delivery_payment_title }}</summary><p v-for="paragraph in deliveryPaymentText" :key="paragraph">{{ paragraph }}</p></details>
+        <details v-for="faq in productFaqs" :key="faq.question" class="product-faq"><summary>{{ faq.question }}</summary><p>{{ faq.answer }}</p></details>
       </aside>
     </section>
     <div v-if="showStickyBuy" class="sticky-buy-bar">
