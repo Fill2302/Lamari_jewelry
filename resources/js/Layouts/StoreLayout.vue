@@ -50,6 +50,9 @@ const money = (amount: number) => (amount / 100).toLocaleString('uk-UA');
 const cartDiscount = () => page.props.cartPreview.items.reduce((sum:number, item:any) => sum + (item.discount_total || 0), 0);
 const asset = (url?: string) => !url ? '' : url.startsWith('http') ? url : `/storage/${url}`;
 const itemImage = (item: any) => asset(item.variant.product.media?.find((m:any) => m.type === 'image')?.url || item.variant.product.image_url);
+const displaySku = (variant:any) => /^\d+\s*см$/iu.test(variant?.name || '')
+  ? String(variant?.sku || '').replace(/-\d+$/u, '')
+  : String(variant?.sku || '');
 const setQuantity = (item:any, quantity:number) => router.put(`/cart/${item.variant.id}`, { quantity }, { preserveScroll: true });
 const setVariant = (item:any, variantId:number) => router.put(`/cart/${item.variant.id}/variant`, { variant_id: variantId }, { preserveScroll: true });
 const remove = (item:any) => router.delete(`/cart/${item.variant.id}`, { preserveScroll: true });
@@ -205,7 +208,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleEscape));
     <div v-else class="cart-drawer-body">
       <article v-for="item in page.props.cartPreview.items" :key="item.variant.id" class="drawer-item">
         <img :src="itemImage(item)" :alt="item.variant.product.name" />
-        <div class="drawer-item-info"><Link :href="`/products/${item.variant.product.slug}`" @click="cartOpen=false">{{ item.variant.product.name }}</Link><label class="cart-size">Довжина<select :value="item.variant.id" @change="setVariant(item, Number(($event.target as HTMLSelectElement).value))"><option v-for="variant in item.variant.product.variants" :key="variant.id" :value="variant.id" :disabled="!variant.is_active || variant.stock_on_hand <= variant.stock_reserved">{{ variant.name }}</option></select></label><small>Артикул {{ item.variant.sku }}</small><div class="qty"><button @click="setQuantity(item,item.quantity-1)">−</button><span>{{ item.quantity }}</span><button @click="setQuantity(item,item.quantity+1)" :disabled="item.quantity >= item.variant.stock_on_hand-item.variant.stock_reserved">+</button></div></div>
+        <div class="drawer-item-info"><Link :href="`/products/${item.variant.product.slug}`" @click="cartOpen=false">{{ item.variant.product.name }}</Link><label class="cart-size">Довжина<select :value="item.variant.id" @change="setVariant(item, Number(($event.target as HTMLSelectElement).value))"><option v-for="variant in item.variant.product.variants" :key="variant.id" :value="variant.id" :disabled="!variant.is_active || variant.stock_on_hand <= variant.stock_reserved">{{ variant.name }}</option></select></label><small>Артикул {{ displaySku(item.variant) }}</small><div class="qty"><button @click="setQuantity(item,item.quantity-1)">−</button><span>{{ item.quantity }}</span><button @click="setQuantity(item,item.quantity+1)" :disabled="item.quantity >= item.variant.stock_on_hand-item.variant.stock_reserved">+</button></div></div>
         <div class="drawer-item-price"><div class="discounted-price"><span v-if="item.discount_total" class="discount-label">-{{ item.variant.discount_percentage }}%</span><del v-if="item.discount_total">{{ money(item.original_total) }} ₴</del><b>{{ money(item.total) }} ₴</b></div><button @click="remove(item)">Видалити</button></div>
       </article>
     </div>

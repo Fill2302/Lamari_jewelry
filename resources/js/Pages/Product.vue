@@ -156,6 +156,10 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateStickyBuy);
 });
 const selectedVariant = computed(() => p.product.variants.find((v: any) => v.id === selected.value));
+const displaySku = (variant:any) => /^\d+\s*см$/iu.test(variant?.name || '')
+  ? String(variant?.sku || '').replace(/-\d+$/u, '')
+  : String(variant?.sku || '');
+const productSku = computed(() => displaySku(p.product.variants[0]));
 const compareAtPrice = computed(() => Number(selectedVariant.value?.discount_percentage ? selectedVariant.value.original_price_amount : p.product.compare_at_price_amount || 0));
 const currentPrice = computed(() => Number(selectedVariant.value?.effective_price_amount ?? selectedVariant.value?.price_amount ?? 0));
 const discountLabel = computed(() => {
@@ -204,7 +208,7 @@ const toggleDetails = (event: MouseEvent) => {
   const details = (event.currentTarget as HTMLElement | null)?.closest('details');
   if (details instanceof HTMLDetailsElement) details.open = !details.open;
 };
-const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.product.name, image: media.value.filter((m:any)=>m.type==='image').map((m:any)=>asset(m.url)), description: p.product.description, sku: p.product.variants[0]?.sku, offers: { '@type': 'Offer', priceCurrency: 'UAH', price: (p.product.variants[0]?.effective_price_amount ?? p.product.variants[0]?.price_amount) / 100, availability: 'https://schema.org/InStock' } };
+const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.product.name, image: media.value.filter((m:any)=>m.type==='image').map((m:any)=>asset(m.url)), description: p.product.description, sku: productSku.value, offers: { '@type': 'Offer', priceCurrency: 'UAH', price: (p.product.variants[0]?.effective_price_amount ?? p.product.variants[0]?.price_amount) / 100, availability: 'https://schema.org/InStock' } };
 </script>
 
 <template>
@@ -263,7 +267,7 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
           <svg viewBox="0 0 24 24"><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>
         </button>
         <h1>{{ product.name }}</h1>
-        <p class="sku">Артикул {{ selectedVariant?.sku }} · <span class="in-stock">В наявності</span></p>
+        <p class="sku">Артикул {{ productSku }} · <span class="in-stock">В наявності</span></p>
         <p class="price" :class="{ 'product-sale-price': compareAtPrice }">
           <del v-if="compareAtPrice">{{ (compareAtPrice / 100).toLocaleString('uk-UA') }} ₴</del>
           <span>{{ (currentPrice / 100).toLocaleString('uk-UA') }} ₴</span>
