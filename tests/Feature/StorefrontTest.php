@@ -25,7 +25,9 @@ class StorefrontTest extends TestCase
         $this->get('/products/crystal-pearl-necklace')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->where('product.slug', 'crystal-pearl-necklace'));
+                ->where('product.slug', 'crystal-pearl-necklace')
+                ->where('productCardSetting.delivery_payment_title', 'Доставка та оплата')
+                ->where('productCardSetting.tarnish_question', 'Чи темніють прикраси?'));
         $this->assertDatabaseHas('product_media', ['type' => 'image', 'is_active' => true]);
         $this->get('/sitemap.xml')->assertOk()->assertHeader('Content-Type', 'application/xml');
         $this->get('/robots.txt')->assertOk()->assertSee('Disallow: /*?*');

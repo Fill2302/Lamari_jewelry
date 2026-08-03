@@ -35,5 +35,12 @@ class AdminPagesTest extends TestCase
         ] as $path) {
             $this->actingAs($user)->get($path)->assertOk();
         }
+
+        $this->actingAs($user)
+            ->get('/admin/product-card-settings')
+            ->assertRedirect('/admin/product-card-settings/1/edit');
+        $this->actingAs($user)
+            ->get('/admin/product-card-settings/1/edit')
+            ->assertOk();
     }
 }

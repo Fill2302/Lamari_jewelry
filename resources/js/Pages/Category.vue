@@ -17,6 +17,15 @@ const props = defineProps<{
 }>();
 const filtersOpen = ref(false);
 const catalogColumns = ref<1 | 2>(2);
+const favorites = ref<number[]>([]);
+const toggleFavorite = (productId:number) => {
+  const next = favorites.value.includes(productId)
+    ? favorites.value.filter(id => id !== productId)
+    : [...favorites.value, productId];
+  localStorage.setItem('lamari-favorites', JSON.stringify(next));
+  favorites.value = next;
+  window.dispatchEvent(new Event('lamari-favorites'));
+};
 const selected = ref<Record<string,string[]>>(Object.fromEntries(
   (props.filters || []).map((filter:any) => [filter.slug, [...(props.selectedFilters?.[filter.slug] || [])]]),
 ));
@@ -161,6 +170,11 @@ const setCatalogColumns = (columns: 1 | 2) => {
 
 onMounted(() => {
   catalogColumns.value = localStorage.getItem('lamari-catalog-columns') === '1' ? 1 : 2;
+  try {
+    favorites.value = JSON.parse(localStorage.getItem('lamari-favorites') || '[]');
+  } catch {
+    favorites.value = [];
+  }
 });
 
 watch(catalogColumns, (columns) => {
@@ -289,6 +303,15 @@ watch(catalogColumns, (columns) => {
           <h3>{{product.name}}</h3>
           <p class="catalog-price"><del v-if="originalPrice(product)">{{(originalPrice(product)/100).toLocaleString('uk-UA')}} ₴</del><span>{{(price(product)/100).toLocaleString('uk-UA')}} ₴</span></p>
         </Link>
+        <button
+          type="button"
+          class="catalog-favorite"
+          :class="{ active: favorites.includes(product.id) }"
+          :aria-label="favorites.includes(product.id) ? 'Видалити з обраного' : 'Додати в обране'"
+          @click="toggleFavorite(product.id)"
+        >
+          <svg viewBox="0 0 24 24"><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>
+        </button>
         <button
           type="button"
           class="catalog-add-button"

@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { Head, useForm, Link, router } from '@inertiajs/vue3';
 import StoreLayout from '../Layouts/StoreLayout.vue';
-const p = defineProps<{ product: any, recommendedProducts: any[] }>();
+const p = defineProps<{ product: any, recommendedProducts: any[], productCardSetting?: any }>();
 const selected = ref(p.product.variants[0]?.id);
 const form = useForm({ quantity: 1 });
 const add = () => form.post(`/cart/${selected.value}`, { preserveScroll: true });
@@ -163,28 +163,43 @@ const discountLabel = computed(() => {
   const catalogLabel = p.product.catalog_badges?.find((badge: any) => badge.type === 'sale')?.label;
   return catalogLabel || `-${Math.round((1 - currentPrice.value / compareAtPrice.value) * 100)}%`;
 });
-const productFaqs = [
+const defaultProductCardSetting = {
+  characteristics_title: 'Характеристики',
+  description_title: 'Опис товару',
+  packaging_title: 'Упаковка',
+  care_title: 'Догляд',
+  delivery_payment_title: 'Доставка та оплата',
+  delivery_text: 'Доставка по Україні здійснюється Новою поштою. Також доступна міжнародна доставка. Точний спосіб, вартість і термін доставки будуть зазначені під час оформлення замовлення.',
+  payment_text: 'Замовлення можна оплатити банківською карткою, через Apple Pay або Google Pay. Також доступні передплата та оплата частинами.',
+  warranty_question: 'Яка гарантія на вироби?',
+  warranty_answer: 'На всі прикраси LAMARI діє гарантія 1 місяць. Якщо протягом цього часу виявиться виробничий дефект, ми безкоштовно відремонтуємо або замінимо виріб. Гарантія не поширюється на механічні пошкодження та пошкодження через недотримання рекомендацій із догляду.',
+  returns_question: 'Чи можу я обміняти або повернути товар?',
+  returns_answer: 'Так, ви можете обміняти товар на інший або повернути його протягом 14 днів із моменту отримання.',
+  water_question: 'Чи можна мочити прикраси?',
+  water_answer: 'Прикраси з ювелірної сталі можна мочити та носити не знімаючи. Прикраси з покриттям золотом або родієм рекомендуємо знімати перед душем, морем чи басейном, щоб вони якомога довше зберігали свій початковий вигляд.',
+  tarnish_question: 'Чи темніють прикраси?',
+  tarnish_answer: 'Наші прикраси не темніють. За умови дотримання рекомендацій із догляду та правильного зберігання вони довго зберігатимуть свій початковий вигляд.',
+};
+const productCardSetting = computed(() => ({ ...defaultProductCardSetting, ...(p.productCardSetting || {}) }));
+const productFaqs = computed(() => [
   {
-    question: 'Яка гарантія на вироби?',
-    answer: 'На всі прикраси LAMARI діє гарантія 1 місяць. Якщо протягом цього часу виявиться виробничий дефект, ми безкоштовно відремонтуємо або замінимо виріб. Гарантія не поширюється на механічні пошкодження та пошкодження через недотримання рекомендацій із догляду.',
+    question: productCardSetting.value.warranty_question,
+    answer: productCardSetting.value.warranty_answer,
   },
   {
-    question: 'Чи можу я обміняти або повернути товар?',
-    answer: 'Так, ви можете обміняти товар на інший або повернути його протягом 14 днів із моменту отримання.',
+    question: productCardSetting.value.returns_question,
+    answer: productCardSetting.value.returns_answer,
   },
   {
-    question: 'Чи можна мочити прикраси?',
-    answer: 'Прикраси з ювелірної сталі можна мочити та носити не знімаючи. Прикраси з покриттям золотом або родієм рекомендуємо знімати перед душем, морем чи басейном, щоб вони якомога довше зберігали свій початковий вигляд.',
+    question: productCardSetting.value.water_question,
+    answer: productCardSetting.value.water_answer,
   },
   {
-    question: 'Чи темніють прикраси?',
-    answer: 'Наші прикраси не темніють. За умови дотримання рекомендацій із догляду та правильного зберігання вони довго зберігатимуть свій початковий вигляд.',
+    question: productCardSetting.value.tarnish_question,
+    answer: productCardSetting.value.tarnish_answer,
   },
-];
-const deliveryPaymentText = [
-  'Доставка по Україні здійснюється Новою поштою. Також доступна міжнародна доставка. Точний спосіб, вартість і термін доставки будуть зазначені під час оформлення замовлення.',
-  'Замовлення можна оплатити банківською карткою, через Apple Pay або Google Pay. Також доступні передплата та оплата частинами.',
-];
+]);
+const deliveryPaymentText = computed(() => [productCardSetting.value.delivery_text, productCardSetting.value.payment_text]);
 const toggleDetails = (event: MouseEvent) => {
   const details = (event.currentTarget as HTMLElement | null)?.closest('details');
   if (details instanceof HTMLDetailsElement) details.open = !details.open;
@@ -274,11 +289,11 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
             </article>
           </div>
         </section>
-        <details open><summary @click.prevent="toggleDetails">Характеристики</summary><dl><template v-for="(value,key) in product.characteristics"><dt>{{ key }}</dt><dd>{{ value }}</dd></template><dt>Матеріал</dt><dd>{{ product.material }}</dd></dl></details>
-        <details><summary @click.prevent="toggleDetails">Опис товару</summary><p>{{ product.description }}</p></details>
-        <details><summary @click.prevent="toggleDetails">Упаковка</summary><p>{{ product.packaging_text }}</p><img class="packaging-image" :src="'/images/product/lamari-packaging.webp'" alt="Подарункова брендована упаковка Lamari" loading="lazy"></details>
-        <details><summary @click.prevent="toggleDetails">Догляд</summary><p>{{ product.care_text }}</p></details>
-        <details><summary @click.prevent="toggleDetails">Доставка та оплата</summary><p v-for="paragraph in deliveryPaymentText" :key="paragraph">{{ paragraph }}</p></details>
+        <details open><summary @click.prevent="toggleDetails">{{ productCardSetting.characteristics_title }}</summary><dl><template v-for="(value,key) in product.characteristics"><dt>{{ key }}</dt><dd>{{ value }}</dd></template><dt>Матеріал</dt><dd>{{ product.material }}</dd></dl></details>
+        <details><summary @click.prevent="toggleDetails">{{ productCardSetting.description_title }}</summary><p>{{ product.description }}</p></details>
+        <details><summary @click.prevent="toggleDetails">{{ productCardSetting.packaging_title }}</summary><p>{{ product.packaging_text }}</p><img class="packaging-image" :src="'/images/product/lamari-packaging.webp'" alt="Подарункова брендована упаковка Lamari" loading="lazy"></details>
+        <details><summary @click.prevent="toggleDetails">{{ productCardSetting.care_title }}</summary><p>{{ product.care_text }}</p></details>
+        <details><summary @click.prevent="toggleDetails">{{ productCardSetting.delivery_payment_title }}</summary><p v-for="paragraph in deliveryPaymentText" :key="paragraph">{{ paragraph }}</p></details>
         <details v-for="faq in productFaqs" :key="faq.question" class="product-faq"><summary @click.prevent="toggleDetails">{{ faq.question }}</summary><p>{{ faq.answer }}</p></details>
       </aside>
     </section>

@@ -6,6 +6,7 @@ use App\Models\Attribute;
 use App\Models\Category;
 use App\Models\HomepageSetting;
 use App\Models\Product;
+use App\Models\ProductCardSetting;
 use App\Models\ProductVariant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -284,6 +285,7 @@ class StoreController extends Controller
         return Inertia::render('Product', [
             'product' => $product,
             'recommendedProducts' => $recommendedProducts,
+            'productCardSetting' => ProductCardSetting::query()->first(),
         ]);
     }
 }

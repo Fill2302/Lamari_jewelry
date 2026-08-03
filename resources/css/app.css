@@ -1111,10 +1111,35 @@ nav {
     overflow: hidden;
 }
 .catalog-card {
+    position: relative;
     background: #fff;
     padding-bottom: 2rem;
     min-width: 0;
     overflow: hidden;
+}
+.catalog-favorite {
+    position: absolute;
+    z-index: 4;
+    top: 0.65rem;
+    right: 0.65rem;
+    width: 34px;
+    height: 34px;
+    padding: 3px;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    filter: drop-shadow(0 1px 4px rgb(0 0 0 / 0.4));
+}
+.catalog-favorite svg {
+    width: 100%;
+    height: 100%;
+    fill: rgb(255 255 255 / 0.15);
+    stroke: currentColor;
+    stroke-width: 1.5;
+}
+.catalog-favorite.active svg {
+    fill: currentColor;
 }
 .catalog-card-link {
     display: block;
