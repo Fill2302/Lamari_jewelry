@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -127,21 +128,23 @@ class StoreController extends Controller
             ->orderBy('position'), 'parent.children' => fn ($query) => $query
             ->where('is_active', true)
             ->orderBy('position')]);
-        $categoryIds = $category->children->pluck('id')->prepend($category->id);
         $navigationRoot = $category->parent ?: $category;
         $navigationItems = $category->parent
             ? $category->parent->children
             : $category->children;
         $selectedFilters = $this->selectedFilters($request);
         $baseQuery = Product::where('is_active', true);
-        if ($category->slug === 'sale') {
-            $baseQuery->whereNotNull('compare_at_price_amount');
-        } else {
-            $baseQuery->whereIn('category_id', $categoryIds);
-        }
+        $baseQuery->whereHas('categories', fn ($categories) => $categories
+            ->where('categories.id', $category->id));
         $priceBounds = $this->priceBounds(clone $baseQuery);
 
-        $products = $this->applyCatalogFilters(clone $baseQuery, $request, $selectedFilters, 'category_position')
+        $products = $this->applyCatalogFilters(
+            clone $baseQuery,
+            $request,
+            $selectedFilters,
+            'category_position',
+            $category->id,
+        )
             ->with('variants', 'media', 'attributeValues.attribute')
             ->paginate(24)
             ->withQueryString();
@@ -150,13 +153,10 @@ class StoreController extends Controller
             ->where('is_filterable', true)
             ->with(['values' => fn ($query) => $query
                 ->where('is_active', true)
-                ->whereHas('products', function ($products) use ($category, $categoryIds): void {
+                ->whereHas('products', function ($products) use ($category): void {
                     $products->where('is_active', true);
-                    if ($category->slug === 'sale') {
-                        $products->whereNotNull('compare_at_price_amount');
-                    } else {
-                        $products->whereIn('category_id', $categoryIds);
-                    }
+                    $products->whereHas('categories', fn ($categories) => $categories
+                        ->where('categories.id', $category->id));
                 })])
             ->orderBy('position')
             ->get()
@@ -198,6 +198,7 @@ class StoreController extends Controller
         Request $request,
         array $selectedFilters,
         string $manualPositionColumn,
+        ?int $membershipCategoryId = null,
     ): Builder {
         foreach ($selectedFilters as $attributeSlug => $valueSlugs) {
             $query->whereHas('attributeValues', fn ($values) => $values
@@ -231,7 +232,13 @@ class StoreController extends Controller
             ),
             'newest' => $query->latest('products.id'),
             default => $query
-                ->orderBy("products.{$manualPositionColumn}")
+                ->orderBy($membershipCategoryId
+                    ? DB::table('category_product')
+                        ->select('position')
+                        ->whereColumn('product_id', 'products.id')
+                        ->where('category_id', $membershipCategoryId)
+                        ->limit(1)
+                    : "products.{$manualPositionColumn}")
                 ->orderByDesc('products.id'),
         };
     }

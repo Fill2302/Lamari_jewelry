@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -74,5 +75,27 @@ class StorefrontTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->where('products.0.id', $product->id)
                 ->where('searchQuery', $skuFragment));
+    }
+
+    public function test_a_product_can_appear_in_its_regular_category_and_a_collection(): void
+    {
+        $regular = Category::create(['name' => 'Кольє', 'slug' => 'necklaces', 'is_active' => true]);
+        $summer = Category::create(['name' => 'Літня колекція', 'slug' => 'summer', 'is_active' => true]);
+        $product = Product::create([
+            'category_id' => $regular->id,
+            'name' => 'Літнє кольє',
+            'slug' => 'summer-necklace',
+            'description' => 'Test',
+            'is_active' => true,
+        ]);
+        $product->categories()->attach($summer->id, ['position' => 1]);
+
+        $this->get('/categories/necklaces')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->where('products.0.id', $product->id));
+
+        $this->get('/categories/summer')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->where('products.0.id', $product->id));
     }
 }

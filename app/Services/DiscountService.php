@@ -97,7 +97,15 @@ class DiscountService
             return false;
         }
 
-        $categoryIds = $this->categoryLineage((int) $product->category_id);
+        $membershipIds = $product->relationLoaded('categories')
+            ? $product->categories->pluck('id')
+            : $product->categories()->pluck('categories.id');
+        $membershipIds->push((int) $product->category_id);
+        $categoryIds = $membershipIds
+            ->flatMap(fn ($categoryId) => $this->categoryLineage((int) $categoryId))
+            ->unique()
+            ->values()
+            ->all();
 
         return match ($discount->scope) {
             'all' => true,
