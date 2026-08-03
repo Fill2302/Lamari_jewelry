@@ -172,6 +172,7 @@ const defaultProductCardSetting = {
   description_title: 'Опис товару',
   packaging_title: 'Упаковка',
   care_title: 'Догляд',
+  care_text: 'Зберігайте прикраси окремо в сухому місці. Уникайте контакту з парфумами, косметикою та побутовою хімією. Після носіння протирайте виріб м’якою сухою серветкою.',
   delivery_payment_title: 'Доставка та оплата',
   delivery_text: 'Доставка по Україні здійснюється Новою поштою. Також доступна міжнародна доставка. Точний спосіб, вартість і термін доставки будуть зазначені під час оформлення замовлення.',
   payment_text: 'Замовлення можна оплатити банківською карткою, через Apple Pay або Google Pay. Також доступні передплата та оплата частинами.',
@@ -204,6 +205,7 @@ const productFaqs = computed(() => [
   },
 ]);
 const deliveryPaymentText = computed(() => [productCardSetting.value.delivery_text, productCardSetting.value.payment_text]);
+const careText = computed(() => p.product.care_text?.trim() || productCardSetting.value.care_text);
 const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.product.name, image: media.value.filter((m:any)=>m.type==='image').map((m:any)=>asset(m.url)), description: p.product.description, sku: productSku.value, offers: { '@type': 'Offer', priceCurrency: 'UAH', price: (p.product.variants[0]?.effective_price_amount ?? p.product.variants[0]?.price_amount) / 100, availability: 'https://schema.org/InStock' } };
 </script>
 
@@ -292,7 +294,7 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
         <details open><summary>{{ productCardSetting.characteristics_title }}</summary><dl><template v-for="(value,key) in product.characteristics"><dt>{{ key }}</dt><dd>{{ value }}</dd></template><dt>Матеріал</dt><dd>{{ product.material }}</dd></dl></details>
         <details><summary>{{ productCardSetting.description_title }}</summary><p>{{ product.description }}</p></details>
         <details><summary>{{ productCardSetting.packaging_title }}</summary><p>{{ product.packaging_text }}</p><img class="packaging-image" :src="'/images/product/lamari-packaging.webp'" alt="Подарункова брендована упаковка Lamari" loading="lazy"></details>
-        <details><summary>{{ productCardSetting.care_title }}</summary><p>{{ product.care_text }}</p></details>
+        <details><summary>{{ productCardSetting.care_title }}</summary><p>{{ careText }}</p></details>
         <details><summary>{{ productCardSetting.delivery_payment_title }}</summary><p v-for="paragraph in deliveryPaymentText" :key="paragraph">{{ paragraph }}</p></details>
         <details v-for="faq in productFaqs" :key="faq.question" class="product-faq"><summary>{{ faq.question }}</summary><p>{{ faq.answer }}</p></details>
       </aside>

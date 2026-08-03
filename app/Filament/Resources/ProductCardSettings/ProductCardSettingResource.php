@@ -38,6 +38,9 @@ class ProductCardSettingResource extends Resource
                 Textarea::make('delivery_text')->label('Текст про доставку')->rows(4)->required(),
                 Textarea::make('payment_text')->label('Текст про оплату')->rows(4)->required(),
             ]),
+            Section::make('Догляд')->schema([
+                Textarea::make('care_text')->label('Загальний текст догляду')->helperText('Показується, якщо для конкретного товару не заповнений індивідуальний текст догляду.')->rows(4)->required(),
+            ]),
             Section::make('Запитання та відповіді')->schema([
                 TextInput::make('warranty_question')->label('Запитання про гарантію')->required(),
                 Textarea::make('warranty_answer')->label('Відповідь про гарантію')->rows(4)->required(),
