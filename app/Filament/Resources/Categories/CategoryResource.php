@@ -27,11 +27,23 @@ use Filament\Tables\Table;
 class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
-    public static function getNavigationLabel(): string { return 'Категорії'; }
-    public static function getModelLabel(): string { return 'категорію'; }
-    public static function getPluralModelLabel(): string { return 'Категорії'; }
+    public static function getNavigationLabel(): string
+    {
+        return 'Категорії';
+    }
+
+    public static function getModelLabel(): string
+    {
+        return 'категорію';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Категорії';
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -40,7 +52,7 @@ class CategoryResource extends Resource
             TextInput::make('name')->label('Назва')->required(),
             TextInput::make('slug')->label('Адреса (slug)')->required()->unique(ignoreRecord: true),
             Textarea::make('description')->label('Опис')->columnSpanFull(),
-            FileUpload::make('image_url')->label('Зображення')->image()->directory('categories')->visibility('public'),
+            FileUpload::make('image_url')->label('Зображення')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])->maxSize(8192)->directory('categories')->visibility('public'),
             TextInput::make('position')->label('Порядок')->numeric()->default(0)->helperText('Також можна перетягувати рядки у списку.'),
             TextInput::make('seo_title')->label('SEO-заголовок'),
             Textarea::make('seo_description')->label('SEO-опис'),

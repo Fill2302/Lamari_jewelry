@@ -9,8 +9,8 @@ use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -22,19 +22,31 @@ use Filament\Tables\Table;
 class HomepageSettingResource extends Resource
 {
     protected static ?string $model = HomepageSetting::class;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPhoto;
 
-    public static function getNavigationLabel(): string { return 'Головна сторінка'; }
-    public static function getModelLabel(): string { return 'головну сторінку'; }
-    public static function getPluralModelLabel(): string { return 'Головна сторінка'; }
+    public static function getNavigationLabel(): string
+    {
+        return 'Головна сторінка';
+    }
+
+    public static function getModelLabel(): string
+    {
+        return 'головну сторінку';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Головна сторінка';
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
             Section::make('Головний банер')->description('Окремі файли для комп’ютера і телефона')->schema([
-                FileUpload::make('desktop_hero_image')->label('Фото для комп’ютера')->image()->directory('homepage')->visibility('public'),
-                FileUpload::make('mobile_hero_video')->label('Відео для телефона')->acceptedFileTypes(['video/mp4', 'video/webm'])->directory('homepage')->visibility('public')->maxSize(153600),
-                FileUpload::make('mobile_hero_poster')->label('Заставка відео')->image()->directory('homepage')->visibility('public'),
+                FileUpload::make('desktop_hero_image')->label('Фото для комп’ютера')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])->maxSize(8192)->directory('homepage')->visibility('public'),
+                FileUpload::make('mobile_hero_video')->label('Відео для телефона')->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime'])->directory('homepage')->visibility('public')->maxSize(51200),
+                FileUpload::make('mobile_hero_poster')->label('Заставка відео')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])->maxSize(8192)->directory('homepage')->visibility('public'),
                 TextInput::make('hero_link')->label('Куди веде натискання')->default('/catalog')->required(),
             ])->columns(2)->collapsible(),
             Section::make('Стрічка та товарні блоки')->schema([
@@ -54,7 +66,7 @@ class HomepageSettingResource extends Resource
                 TextInput::make('instagram_title')->label('Заголовок')->required(),
                 TextInput::make('instagram_url')->label('Посилання Instagram')->url(),
                 Textarea::make('instagram_text')->label('Текст')->columnSpanFull(),
-                FileUpload::make('instagram_images')->label('Фотографії')->multiple()->reorderable()->image()->directory('homepage/instagram')->visibility('public')->columnSpanFull(),
+                FileUpload::make('instagram_images')->label('Фотографії')->multiple()->reorderable()->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])->maxSize(8192)->directory('homepage/instagram')->visibility('public')->columnSpanFull(),
             ])->columns(2)->collapsible(),
         ]);
     }
@@ -66,8 +78,15 @@ class HomepageSettingResource extends Resource
         ])->recordActions([EditAction::make()]);
     }
 
-    public static function canCreate(): bool { return HomepageSetting::query()->doesntExist(); }
-    public static function canDelete($record): bool { return false; }
+    public static function canCreate(): bool
+    {
+        return HomepageSetting::query()->doesntExist();
+    }
+
+    public static function canDelete($record): bool
+    {
+        return false;
+    }
 
     public static function getPages(): array
     {

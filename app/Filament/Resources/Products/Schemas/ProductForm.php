@@ -128,7 +128,8 @@ class ProductForm
                             ->required(),
                         FileUpload::make('url')
                             ->label('Фото або відео')
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm'])
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime'])
+                            ->maxSize(51200)
                             ->disk('public')
                             ->directory('products')
                             ->visibility('public')
@@ -139,6 +140,8 @@ class ProductForm
                         FileUpload::make('poster_url')
                             ->label('Обкладинка відео')
                             ->image()
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->maxSize(8192)
                             ->disk('public')
                             ->directory('products/posters')
                             ->visibility('public')
