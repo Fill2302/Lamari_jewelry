@@ -9,7 +9,7 @@ use App\Http\Controllers\SeoController;
 use App\Http\Controllers\StoreController;
 use App\Http\Middleware\ProtectStaging;
 use App\Models\Order;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -181,10 +181,10 @@ Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.sho
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 Route::get('/payments/fake/{payment}', [FakePaymentController::class, 'show'])->name('payments.fake.show');
 Route::post('/payments/fake/{payment}/pay', [FakePaymentController::class, 'pay'])->name('payments.fake.pay');
-Route::post('/payments/fake/callback', [FakePaymentController::class, 'callback'])->withoutMiddleware([ValidateCsrfToken::class]);
+Route::post('/payments/fake/callback', [FakePaymentController::class, 'callback'])->withoutMiddleware([PreventRequestForgery::class]);
 Route::get('/payments/mono/return/{payment}', [MonoPaymentController::class, 'return'])->name('payments.mono.return');
 Route::post('/payments/mono/webhook', [MonoPaymentController::class, 'webhook'])
-    ->withoutMiddleware([ValidateCsrfToken::class, ProtectStaging::class])
+    ->withoutMiddleware([PreventRequestForgery::class, ProtectStaging::class])
     ->middleware('throttle:120,1')
     ->name('payments.mono.webhook');
 Route::get('/orders/{order}/thank-you', fn (Order $order) => Inertia::render('ThankYou', ['order' => $order]))->name('orders.thank-you');

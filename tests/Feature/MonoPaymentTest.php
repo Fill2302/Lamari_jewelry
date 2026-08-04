@@ -7,6 +7,7 @@ use App\Models\MerchantAccount;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Payments\MonoPaymentProvider;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -72,6 +73,7 @@ class MonoPaymentTest extends TestCase
 
     public function test_signed_success_webhook_confirms_order_and_is_idempotent(): void
     {
+        $this->withMiddleware(PreventRequestForgery::class);
         config([
             'app.staging_protected' => true,
             'app.staging_username' => 'preview',
