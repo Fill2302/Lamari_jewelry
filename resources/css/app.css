@@ -1491,9 +1491,23 @@ nav {
     padding: 0.65rem 0.9rem;
     cursor: pointer;
 }
+.variant-pills--round button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    padding: 0.25rem;
+    border-radius: 50%;
+    line-height: 1;
+    white-space: nowrap;
+}
 .variant-pills button.active {
-    background: #211b18;
     color: white;
+    background: #211b18;
+}
+.variant-pills--round button.active {
+    background: #b59b87;
 }
 .buy {
     width: 100%;

@@ -309,7 +309,7 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
           <button type="button" @click="sizeGuideOpen = true">Як визначити розмір</button>
         </div>
         <span class="visually-hidden">Оберіть розмір</span>
-        <div class="variant-pills"><button v-for="v in product.variants" :key="v.id" :class="{ active: selected === v.id }" @click="selected = v.id">{{ v.name }}</button></div>
+        <div class="variant-pills" :class="{ 'variant-pills--round': sizeGuideKind === 'necklace' }"><button v-for="v in product.variants" :key="v.id" :class="{ active: selected === v.id }" @click="selected = v.id">{{ v.name }}</button></div>
         <button ref="buyButton" class="button buy" @click="add" :disabled="form.processing || !selected">Додати в кошик</button>
         <div class="product-benefits"><span>Безкоштовне брендоване пакування</span><span>Відправлення 1–2 робочі дні</span></div>
         <section v-if="recommendedProducts.length" class="complete-look" aria-labelledby="complete-look-title">
