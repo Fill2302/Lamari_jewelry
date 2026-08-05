@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
+use App\Models\IntegrationCredential;
 use App\Models\LegalEntity;
 use App\Models\MerchantAccount;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Payments\MonoPaymentProvider;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -70,6 +74,49 @@ class MonoPaymentTest extends TestCase
                 && $request['merchantPaymInfo']['destination'] === 'Сережка'
                 && str_ends_with($request['webHookUrl'], '/payments/mono/webhook');
         });
+    }
+
+    public function test_checkout_uses_an_inertia_location_for_the_external_mono_page(): void
+    {
+        $entity = LegalEntity::create(['name' => 'Test FOP']);
+        MerchantAccount::create(['legal_entity_id' => $entity->id, 'provider' => 'mono', 'code' => 'mono-checkout', 'is_default' => true]);
+        $category = Category::create(['name' => 'Earrings', 'slug' => 'earrings']);
+        $product = Product::create(['category_id' => $category->id, 'name' => 'Сережка', 'slug' => 'test-earring', 'description' => 'Test']);
+        $variant = ProductVariant::create(['product_id' => $product->id, 'sku' => 'TEST-1', 'name' => 'Тестова', 'price_amount' => 100, 'stock_on_hand' => 1]);
+        IntegrationCredential::updateOrCreate(['provider' => 'nova_poshta'], ['api_key' => 'nova-secret', 'is_active' => true]);
+        $cityRef = '11111111-1111-4111-8111-111111111111';
+        $warehouseRef = '22222222-2222-4222-8222-222222222222';
+        Http::fake(function ($request) use ($cityRef, $warehouseRef) {
+            if ($request->url() === 'https://api.novaposhta.ua/v2.0/json/') {
+                return Http::response(['success' => true, 'data' => [[
+                    'Ref' => $warehouseRef,
+                    'CityRef' => $cityRef,
+                    'Description' => 'Відділення №1',
+                ]]]);
+            }
+
+            if ($request->url() === 'https://api.monobank.ua/api/merchant/invoice/create') {
+                return Http::response(['invoiceId' => 'p2_checkout', 'pageUrl' => 'https://pay.mbnk.biz/p2_checkout']);
+            }
+
+            return Http::response([], 404);
+        });
+
+        $response = $this->withSession(['cart' => [$variant->id => ['quantity' => 1]]])
+            ->post(route('checkout.store'), [
+                'first_name' => 'Філіп',
+                'last_name' => 'Сокольський',
+                'email' => 'buyer@example.test',
+                'phone' => '+380958831985',
+                'city' => 'Київ',
+                'city_ref' => $cityRef,
+                'warehouse' => 'Відділення №1',
+                'warehouse_ref' => $warehouseRef,
+                'payment_method' => 'online',
+            ], ['X-Inertia' => 'true']);
+
+        $response->assertStatus(409)
+            ->assertHeader('X-Inertia-Location', 'https://pay.mbnk.biz/p2_checkout');
     }
 
     public function test_signed_success_webhook_confirms_order_and_is_idempotent(): void

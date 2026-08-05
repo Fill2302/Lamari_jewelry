@@ -4,14 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Services\CartService;
 use App\Services\CheckoutService;
-use App\Services\NovaPoshtaService;
 use App\Services\MarketingAttribution;
-use Illuminate\Http\RedirectResponse;
+use App\Services\NovaPoshtaService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use Throwable;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Throwable;
 
 class CheckoutController extends Controller
 {
@@ -22,7 +22,7 @@ class CheckoutController extends Controller
         return Inertia::render('Checkout', ['items' => $items, 'total' => collect($items)->sum('total')]);
     }
 
-    public function store(Request $r, CartService $cart, CheckoutService $checkout, NovaPoshtaService $novaPoshta, MarketingAttribution $attribution): RedirectResponse
+    public function store(Request $r, CartService $cart, CheckoutService $checkout, NovaPoshtaService $novaPoshta, MarketingAttribution $attribution): SymfonyResponse
     {
         $phoneDigits = preg_replace('/\D+/', '', (string) $r->input('phone'));
 
@@ -77,6 +77,10 @@ class CheckoutController extends Controller
         ], $cart->items(), $d['payment_method']);
         $cart->clear();
 
-        return redirect($payment['checkout_url']);
+        if (str_starts_with($payment['checkout_url'], config('app.url'))) {
+            return redirect($payment['checkout_url']);
+        }
+
+        return Inertia::location($payment['checkout_url']);
     }
 }
