@@ -26,7 +26,7 @@ class MonoPaymentProvider implements PaymentProvider
             'ccy' => 980,
             'merchantPaymInfo' => [
                 'reference' => $payment->idempotency_key,
-                'destination' => 'Оплата замовлення '.$payment->order->number,
+                'destination' => $this->paymentDestination($payment),
                 'comment' => 'Замовлення '.$payment->order->number,
                 'customerEmails' => array_values(array_filter([$payment->order->email])),
                 'basketOrder' => $payment->order->items->map(fn ($item): array => [
@@ -56,6 +56,18 @@ class MonoPaymentProvider implements PaymentProvider
         ]);
 
         return ['payment_id' => $invoiceId, 'checkout_url' => $pageUrl];
+    }
+
+    private function paymentDestination(Payment $payment): string
+    {
+        $names = $payment->order->items
+            ->pluck('name')
+            ->map(fn (string $name): string => trim(explode(' — ', $name, 2)[0]))
+            ->filter()
+            ->unique()
+            ->implode(', ');
+
+        return mb_substr($names !== '' ? $names : 'Біжутерія', 0, 128);
     }
 
     public function verifySignature(string $payload, ?string $signature): bool

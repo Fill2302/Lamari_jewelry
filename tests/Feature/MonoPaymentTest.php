@@ -51,7 +51,7 @@ class MonoPaymentTest extends TestCase
         $payment = $this->payment();
         $payment->order->items()->create([
             'sku' => 'SKU-1',
-            'name' => 'Кольє — 45 см',
+            'name' => 'Сережка — Тестова',
             'quantity' => 1,
             'unit_price_amount' => 145000,
             'total_amount' => 145000,
@@ -67,6 +67,7 @@ class MonoPaymentTest extends TestCase
                 && $request['amount'] === 145000
                 && $request['ccy'] === 980
                 && $request['merchantPaymInfo']['reference'] === $payment->idempotency_key
+                && $request['merchantPaymInfo']['destination'] === 'Сережка'
                 && str_ends_with($request['webHookUrl'], '/payments/mono/webhook');
         });
     }
