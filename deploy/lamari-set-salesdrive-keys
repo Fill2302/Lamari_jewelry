@@ -97,8 +97,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         SALESDRIVE_ENABLED=*) printf 'SALESDRIVE_ENABLED=true\n' >> "$new_env"; enabled_written=true ;;
         SALESDRIVE_PENDING_STATUS=*) printf 'SALESDRIVE_PENDING_STATUS=Оплата\n' >> "$new_env"; pending_status_written=true ;;
         SALESDRIVE_PAID_STATUS=*) printf 'SALESDRIVE_PAID_STATUS=Підтверджено\n' >> "$new_env"; paid_status_written=true ;;
-        SALESDRIVE_PAYMENT_METHOD=*) printf 'SALESDRIVE_PAYMENT_METHOD=Оплата карткою на сайті\n' >> "$new_env"; payment_method_written=true ;;
-        SALESDRIVE_DELIVERY_METHOD=*) printf 'SALESDRIVE_DELIVERY_METHOD=Нова Пошта\n' >> "$new_env"; delivery_method_written=true ;;
+        SALESDRIVE_PAYMENT_METHOD=*) printf 'SALESDRIVE_PAYMENT_METHOD="Оплата карткою на сайті"\n' >> "$new_env"; payment_method_written=true ;;
+        SALESDRIVE_DELIVERY_METHOD=*) printf 'SALESDRIVE_DELIVERY_METHOD="Нова Пошта"\n' >> "$new_env"; delivery_method_written=true ;;
         *) printf '%s\n' "$line" >> "$new_env" ;;
     esac
 done < "$env_file"
@@ -109,8 +109,8 @@ done < "$env_file"
 
 [[ "$pending_status_written" == true ]] || printf 'SALESDRIVE_PENDING_STATUS=Оплата\n' >> "$new_env"
 [[ "$paid_status_written" == true ]] || printf 'SALESDRIVE_PAID_STATUS=Підтверджено\n' >> "$new_env"
-[[ "$payment_method_written" == true ]] || printf 'SALESDRIVE_PAYMENT_METHOD=Оплата карткою на сайті\n' >> "$new_env"
-[[ "$delivery_method_written" == true ]] || printf 'SALESDRIVE_DELIVERY_METHOD=Нова Пошта\n' >> "$new_env"
+[[ "$payment_method_written" == true ]] || printf 'SALESDRIVE_PAYMENT_METHOD="Оплата карткою на сайті"\n' >> "$new_env"
+[[ "$delivery_method_written" == true ]] || printf 'SALESDRIVE_DELIVERY_METHOD="Нова Пошта"\n' >> "$new_env"
 
 mv "$new_env" "$env_file"
 new_env=
