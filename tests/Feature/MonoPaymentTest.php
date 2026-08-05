@@ -11,6 +11,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Payments\MonoPaymentProvider;
+use App\Services\PaymentCallbackService;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -148,6 +149,38 @@ class MonoPaymentTest extends TestCase
         $this->assertSame('paid', $payment->fresh()->status);
         $this->assertSame('paid', $payment->order->fresh()->payment_status);
         $this->assertSame('confirmed', $payment->order->fresh()->status);
+    }
+
+    public function test_salesdrive_failure_cannot_roll_back_a_successful_mono_payment(): void
+    {
+        config([
+            'services.salesdrive.enabled' => true,
+            'services.salesdrive.orders_key' => 'orders-secret',
+            'services.salesdrive.payments_key' => 'payments-secret',
+        ]);
+        Http::fake([
+            'lamari.salesdrive.me/*' => Http::response(['status' => 'error'], 500),
+        ]);
+        $payment = $this->payment(['provider_payment_id' => 'p2_paid_salesdrive_error']);
+        $payload = [
+            'invoiceId' => 'p2_paid_salesdrive_error',
+            'status' => 'success',
+            'amount' => 145000,
+            'ccy' => 980,
+            'reference' => $payment->idempotency_key,
+            'modifiedDate' => '2026-08-05T12:00:00Z',
+        ];
+        [$raw, $signature] = $this->signed($payload);
+
+        $this->assertTrue(app(PaymentCallbackService::class)->handle($raw, $signature));
+
+        $this->assertSame('paid', $payment->fresh()->status);
+        $this->assertSame('paid', $payment->order->fresh()->payment_status);
+        $this->assertNotNull($payment->order->fresh()->salesdrive_sync_error);
+        $this->assertDatabaseHas('webhook_events', [
+            'provider' => 'mono',
+            'status' => 'processed',
+        ]);
     }
 
     public function test_webhook_rejects_invalid_signature_and_wrong_amount(): void

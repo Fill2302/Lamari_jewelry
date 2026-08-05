@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\WebhookEvent;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
+use Throwable;
 
 class PaymentCallbackService
 {
@@ -51,7 +52,6 @@ class PaymentCallbackService
             if ($cb->status === 'paid') {
                 $payment->order()->update(['payment_status' => 'paid', 'status' => 'confirmed']);
                 $payment->refresh()->load('order.items');
-                $this->salesDrive->syncPaid($payment);
                 $processedPayment = $payment;
             }
 
@@ -61,6 +61,12 @@ class PaymentCallbackService
         });
 
         if ($processedPayment) {
+            try {
+                $this->salesDrive->syncPaid($processedPayment);
+            } catch (Throwable $e) {
+                report($e);
+            }
+
             $this->telegram->notifyPaid($processedPayment);
         }
 
