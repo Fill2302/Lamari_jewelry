@@ -4,6 +4,10 @@ import { Head, useForm, Link, router } from '@inertiajs/vue3';
 import StoreLayout from '../Layouts/StoreLayout.vue';
 const p = defineProps<{ product: any, recommendedProducts: any[], productCardSetting?: any }>();
 const selected = ref(p.product.variants[0]?.id);
+const showVariantSelector = computed(() => !(
+  p.product.variants.length === 1
+  && /^Стандартн(?:ий|а|е)$/iu.test(String(p.product.variants[0]?.name || '').trim())
+));
 const form = useForm({ quantity: 1 });
 const add = () => form.post(`/cart/${selected.value}`, { preserveScroll: true });
 const asset = (url?: string) => !url ? '' : url.startsWith('http') ? url : `/storage/${url}`;
@@ -308,8 +312,8 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
           <p v-if="sizeGuideLabel">{{ sizeGuideLabel }}</p>
           <button type="button" @click="sizeGuideOpen = true">Як визначити розмір</button>
         </div>
-        <span class="visually-hidden">Оберіть розмір</span>
-        <div class="variant-pills" :class="{ 'variant-pills--round': ['necklace', 'ring'].includes(sizeGuideKind) }"><button v-for="v in product.variants" :key="v.id" :class="{ active: selected === v.id }" @click="selected = v.id">{{ v.name }}</button></div>
+        <span v-if="showVariantSelector" class="visually-hidden">Оберіть розмір</span>
+        <div v-if="showVariantSelector" class="variant-pills" :class="{ 'variant-pills--round': ['necklace', 'ring'].includes(sizeGuideKind) }"><button v-for="v in product.variants" :key="v.id" :class="{ active: selected === v.id }" @click="selected = v.id">{{ v.name }}</button></div>
         <button ref="buyButton" class="button buy" @click="add" :disabled="form.processing || !selected">Додати в кошик</button>
         <div class="product-benefits"><span>Безкоштовне брендоване пакування</span><span>Відправлення 1–2 робочі дні</span></div>
         <section v-if="recommendedProducts.length" class="complete-look" aria-labelledby="complete-look-title">
