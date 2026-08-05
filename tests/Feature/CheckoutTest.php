@@ -38,6 +38,19 @@ class CheckoutTest extends TestCase
         $this->assertNotNull($order->legal_entity_id);
     }
 
+    public function test_new_order_numbers_start_at_one_and_increment(): void
+    {
+        $variant = $this->variant();
+        $customer = ['customer_name' => 'Filip', 'email' => 'f@example.com', 'phone' => '+380000000000', 'shipping_address' => ['city' => 'Kyiv']];
+        $checkout = $this->app->make(CheckoutService::class);
+
+        [$first] = $checkout->create($customer, [['variant' => $variant, 'quantity' => 1]]);
+        [$second] = $checkout->create($customer, [['variant' => $variant, 'quantity' => 1]]);
+
+        $this->assertSame('1', $first->number);
+        $this->assertSame('2', $second->number);
+    }
+
     public function test_order_fails_when_stock_is_insufficient(): void
     {
         $v = $this->variant(stock: 1);
