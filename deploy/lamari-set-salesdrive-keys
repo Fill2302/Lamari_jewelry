@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+app_dir=/var/www/lamari
+env_file=$app_dir/.env
+base_url=https://lamari.salesdrive.me
+
+if [[ ! -f "$env_file" ]]; then
+    echo "Помилка: файл налаштувань сайту не знайдено." >&2
+    exit 1
+fi
+
+echo "Увага: ця команда підключає test.lamari.jewelry до реальної CRM lamari.salesdrive.me."
+read -r -s -p "Вставте ключ «Lamari — замовлення» і натисніть Enter: " orders_key
+echo
+read -r -s -p "Вставте ключ «Lamari — платежі» і натисніть Enter: " payments_key
+echo
+
+if [[ ! "$orders_key" =~ ^[A-Za-z0-9_-]{20,}$ ]] || [[ ! "$payments_key" =~ ^[A-Za-z0-9_-]{20,}$ ]]; then
+    echo "Ключі не збережено: один із рядків має неправильний формат." >&2
+    unset orders_key payments_key
+    exit 1
+fi
+
+response_file=$(mktemp)
+new_env=
+cleanup() {
+    unset orders_key payments_key
+    rm -f "$response_file"
+    [[ -z "$new_env" ]] || rm -f "$new_env"
+}
+trap cleanup EXIT
+
+http_code=$(
+    printf 'silent\nshow-error\nheader = "X-Api-Key: %s"\nurl = "%s/api/statuses/"\noutput = "%s"\nwrite-out = "%%{http_code}"\n' \
+        "$orders_key" "$base_url" "$response_file" | curl --config -
+)
+
+if [[ "$http_code" != "200" ]]; then
+    echo "Ключ замовлень не збережено: SalesDrive відхилив його (HTTP $http_code)." >&2
+    exit 1
+fi
+
+php -r '
+$json = json_decode(file_get_contents($argv[1]), true);
+$names = array_column($json["data"] ?? [], "name");
+foreach (["Очікує оплати", "Оплачено"] as $required) {
+    if (!in_array($required, $names, true)) {
+        fwrite(STDERR, "Ключі не збережено: у CRM не знайдено статус «{$required}».\n");
+        exit(1);
+    }
+}
+' "$response_file"
+
+backup_dir=/home/sgadmin/lamari-deploy-backups/env
+mkdir -p "$backup_dir"
+cp -a "$env_file" "$backup_dir/.env.before-salesdrive-$(date -u +%Y%m%d-%H%M%S)"
+
+new_env=$(mktemp "$app_dir/.env.salesdrive.XXXXXX")
+chmod 640 "$new_env"
+sudo -n chown --reference="$env_file" "$new_env"
+
+orders_written=false
+payments_written=false
+enabled_written=false
+while IFS= read -r line || [[ -n "$line" ]]; do
+    case "$line" in
+        SALESDRIVE_ORDERS_API_KEY=*) printf 'SALESDRIVE_ORDERS_API_KEY=%s\n' "$orders_key" >> "$new_env"; orders_written=true ;;
+        SALESDRIVE_PAYMENTS_API_KEY=*) printf 'SALESDRIVE_PAYMENTS_API_KEY=%s\n' "$payments_key" >> "$new_env"; payments_written=true ;;
+        SALESDRIVE_ENABLED=*) printf 'SALESDRIVE_ENABLED=true\n' >> "$new_env"; enabled_written=true ;;
+        *) printf '%s\n' "$line" >> "$new_env" ;;
+    esac
+done < "$env_file"
+
+[[ "$orders_written" == true ]] || printf 'SALESDRIVE_ORDERS_API_KEY=%s\n' "$orders_key" >> "$new_env"
+[[ "$payments_written" == true ]] || printf 'SALESDRIVE_PAYMENTS_API_KEY=%s\n' "$payments_key" >> "$new_env"
+[[ "$enabled_written" == true ]] || printf 'SALESDRIVE_ENABLED=true\n' >> "$new_env"
+
+mv "$new_env" "$env_file"
+new_env=
+unset orders_key payments_key
+
+cd "$app_dir"
+php artisan config:clear >/dev/null
+php artisan cache:clear >/dev/null
+
+echo "Готово: ключ замовлень перевірено, обидва ключі збережено, SalesDrive увімкнено на test.lamari.jewelry."
+echo "Ключ платежів буде остаточно перевірено під час контрольованої оплати 1 грн — без тестового платежу SalesDrive не дає безпечної read-only перевірки цього права."

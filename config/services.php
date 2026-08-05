@@ -10,6 +10,18 @@ return [
         'mono_public_key' => env('MONO_WEBHOOK_PUBLIC_KEY'),
     ],
 
+    'salesdrive' => [
+        'enabled' => env('SALESDRIVE_ENABLED', false),
+        'base_url' => env('SALESDRIVE_BASE_URL', 'https://lamari.salesdrive.me'),
+        'source' => env('SALESDRIVE_SOURCE', 'test.lamari.jewelry'),
+        'orders_key' => env('SALESDRIVE_ORDERS_API_KEY'),
+        'payments_key' => env('SALESDRIVE_PAYMENTS_API_KEY'),
+        'pending_status' => env('SALESDRIVE_PENDING_STATUS', 'Очікує оплати'),
+        'paid_status' => env('SALESDRIVE_PAID_STATUS', 'Оплачено'),
+        'payment_method' => env('SALESDRIVE_PAYMENT_METHOD', 'Онлайн-оплата'),
+        'delivery_method' => env('SALESDRIVE_DELIVERY_METHOD', 'Нова Пошта'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

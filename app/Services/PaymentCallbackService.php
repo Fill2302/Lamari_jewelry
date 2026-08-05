@@ -10,7 +10,10 @@ use RuntimeException;
 
 class PaymentCallbackService
 {
-    public function __construct(private PaymentProvider $provider) {}
+    public function __construct(
+        private PaymentProvider $provider,
+        private SalesDriveSyncService $salesDrive,
+    ) {}
 
     public function handle(string $raw, ?string $signature): bool
     {
@@ -45,6 +48,8 @@ class PaymentCallbackService
             $payment->update(['status' => $cb->status, 'payload' => $cb->payload]);
             if ($cb->status === 'paid') {
                 $payment->order()->update(['payment_status' => 'paid', 'status' => 'confirmed']);
+                $payment->refresh()->load('order.items');
+                $this->salesDrive->syncPaid($payment);
             }
 
             $event->update(['status' => 'processed', 'processed_at' => now()]);

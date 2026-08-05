@@ -14,11 +14,15 @@ use RuntimeException;
 
 class CheckoutService
 {
-    public function __construct(private MerchantSelector $selector, private PaymentProvider $provider) {}
+    public function __construct(
+        private MerchantSelector $selector,
+        private PaymentProvider $provider,
+        private SalesDriveSyncService $salesDrive,
+    ) {}
 
     public function create(array $customer, array $cart, string $paymentMethod = 'online'): array
     {
-        return DB::transaction(function () use ($customer, $cart, $paymentMethod) {
+        [$order, $payment] = DB::transaction(function () use ($customer, $cart, $paymentMethod) {
             if (! $cart) {
                 throw new RuntimeException('Cart is empty.');
             }$resolved = [];
@@ -60,12 +64,24 @@ class CheckoutService
             }
 
             if ($cashOnDelivery) {
-                return [$order, ['checkout_url' => route('orders.thank-you', $order)]];
+                return [$order, null];
             }
 
             $payment = Payment::create(['order_id' => $order->id, 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'provider' => $this->provider->name(), 'amount' => $total, 'currency' => 'UAH', 'idempotency_key' => (string) Str::uuid()]);
 
-            return [$order, $this->provider->createPayment($payment)];
+            return [$order, $payment];
         });
+
+        try {
+            $this->salesDrive->syncPending($order);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        if (! $payment) {
+            return [$order, ['checkout_url' => route('orders.thank-you', $order)]];
+        }
+
+        return [$order, $this->provider->createPayment($payment)];
     }
 }
