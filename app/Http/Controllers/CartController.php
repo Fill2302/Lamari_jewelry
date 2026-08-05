@@ -28,10 +28,15 @@ class CartController extends Controller
 
     public function update(Request $request, ProductVariant $variant, CartService $cart): RedirectResponse
     {
-        $data = $request->validate(['quantity' => 'required|integer|min:0|max:10']);
+        $data = $request->validate([
+            'quantity' => 'required|integer|min:0|max:10',
+            'cart_open' => 'sometimes|boolean',
+        ]);
         $cart->update($variant, $data['quantity']);
 
-        return back()->with('cartOpen', true);
+        return ($data['cart_open'] ?? true)
+            ? back()->with('cartOpen', true)
+            : back();
     }
 
     public function changeVariant(Request $request, ProductVariant $variant, CartService $cart): RedirectResponse
