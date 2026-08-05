@@ -5,8 +5,7 @@ return [
     'payments' => [
         'default' => env('PAYMENT_PROVIDER', 'fake'),
         'fake_secret' => env('FAKE_PAYMENT_SECRET', 'lamari-local-fake-secret'),
-        'mono_test_mode' => env('MONO_PAYMENT_TEST_MODE', true),
-        'mono_token' => env('MONO_MERCHANT_TOKEN_TEST'),
+        'mono_token' => env('MONO_MERCHANT_TOKEN'),
         'mono_base_url' => env('MONO_API_BASE_URL', 'https://api.monobank.ua'),
         'mono_public_key' => env('MONO_WEBHOOK_PUBLIC_KEY'),
     ],
