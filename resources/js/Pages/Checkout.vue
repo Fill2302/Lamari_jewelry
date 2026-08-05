@@ -177,7 +177,6 @@ function submit() {
       <header class="checkout-heading">
         <p class="eyebrow">ВАШЕ ЗАМОВЛЕННЯ</p>
         <h1>Оформлення замовлення</h1>
-        <p>Заповніть контактні дані — ми зв’яжемося з вами для підтвердження.</p>
       </header>
 
       <section class="checkout-order" aria-labelledby="checkout-order-title">
