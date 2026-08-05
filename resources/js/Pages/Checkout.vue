@@ -226,7 +226,7 @@ function submit() {
             <legend>Спосіб оплати</legend>
             <label :class="{ selected: form.payment_method === 'online' }">
               <input v-model="form.payment_method" type="radio" value="online" />
-              <span><strong>Онлайн-оплата</strong><small>На тестовому сайті оплата не списується</small></span>
+              <span><strong>Онлайн-оплата</strong><small>Оплата карткою, Apple Pay або Google Pay</small></span>
             </label>
             <label :class="{ selected: form.payment_method === 'cash_on_delivery' }">
               <input v-model="form.payment_method" type="radio" value="cash_on_delivery" />
