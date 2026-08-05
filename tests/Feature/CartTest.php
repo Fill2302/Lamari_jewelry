@@ -38,4 +38,16 @@ class CartTest extends TestCase
         $this->post("/cart/{$variant->id}", ['quantity' => 10])
             ->assertSessionHas("cart.{$variant->id}.quantity", 2);
     }
+
+    public function test_checkout_quantity_update_does_not_open_cart_drawer(): void
+    {
+        $this->seed();
+        $variant = ProductVariant::firstOrFail();
+
+        $this->withSession(['cart' => [$variant->id => ['quantity' => 1]]])
+            ->put("/cart/{$variant->id}", ['quantity' => 2, 'cart_open' => false])
+            ->assertRedirect()
+            ->assertSessionHas('cartOpen', false)
+            ->assertSessionHas("cart.{$variant->id}.quantity", 2);
+    }
 }

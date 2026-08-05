@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import StoreLayout from '../Layouts/StoreLayout.vue';
 
@@ -12,6 +12,16 @@ function applyPromo() {
   promoForm.code = promoForm.code.trim();
   promoForm.post('/checkout/promo-code', { preserveScroll: true, onSuccess: () => { promoOpen.value = true; } });
 }
+const editingOrder = ref(false);
+const asset = (url?:string) => !url ? '' : url.startsWith('http') ? url : `/storage/${url}`;
+const itemImage = (item:any) => asset(item.variant.product.media?.find((media:any) => media.type === 'image')?.url || item.variant.product.image_url);
+const displaySku = (variant:any) => /^\d+\s*см$/iu.test(variant?.name || '')
+  ? String(variant?.sku || '').replace(/-\d+$/u, '')
+  : String(variant?.sku || '');
+const setQuantity = (item:any, quantity:number) => router.put(`/cart/${item.variant.id}`, { quantity, cart_open: false }, { preserveScroll: true });
+const setVariant = (item:any, variantId:number) => router.put(`/cart/${item.variant.id}/variant`, { variant_id: variantId }, { preserveScroll: true });
+const removeItem = (item:any) => router.delete(`/cart/${item.variant.id}`, { preserveScroll: true });
+const itemUnitPrice = (item:any) => Math.round(item.total / item.quantity);
 
 const form = useForm({
   first_name: '',
@@ -169,6 +179,43 @@ function submit() {
         <h1>Оформлення замовлення</h1>
         <p>Заповніть контактні дані — ми зв’яжемося з вами для підтвердження.</p>
       </header>
+
+      <section class="checkout-order" aria-labelledby="checkout-order-title">
+        <div class="checkout-order-head">
+          <h2 id="checkout-order-title">Замовлення</h2>
+          <button type="button" class="checkout-edit" :aria-expanded="editingOrder" @click="editingOrder = !editingOrder">
+            <span aria-hidden="true">✎</span>{{ editingOrder ? 'Готово' : 'Редагувати' }}
+          </button>
+        </div>
+        <div v-if="!items.length" class="checkout-order-empty">
+          Ваш кошик порожній. <Link href="/">Перейти до каталогу</Link>
+        </div>
+        <article v-for="item in items" :key="item.variant.id" class="checkout-order-item">
+          <img :src="itemImage(item)" :alt="item.variant.product.name" />
+          <div class="checkout-order-info">
+            <Link :href="`/products/${item.variant.product.slug}`">{{ item.variant.product.name }}</Link>
+            <label v-if="editingOrder && item.variant.product.variants.length > 1" class="checkout-order-size">
+              Розмір
+              <select :value="item.variant.id" @change="setVariant(item, Number(($event.target as HTMLSelectElement).value))">
+                <option v-for="variant in item.variant.product.variants" :key="variant.id" :value="variant.id" :disabled="!variant.is_active || variant.stock_on_hand <= variant.stock_reserved">{{ variant.name }}</option>
+              </select>
+            </label>
+            <p v-else-if="item.variant.name">Розмір: {{ item.variant.name }}</p>
+            <small>Арт. {{ displaySku(item.variant) }}</small>
+          </div>
+          <div class="checkout-order-meta">
+            <b>{{ (itemUnitPrice(item) / 100).toLocaleString('uk-UA') }} грн.</b>
+            <div v-if="editingOrder" class="checkout-order-qty" aria-label="Кількість">
+              <button type="button" aria-label="Зменшити кількість" @click="setQuantity(item, item.quantity - 1)">−</button>
+              <span>{{ item.quantity }}</span>
+              <button type="button" aria-label="Збільшити кількість" :disabled="item.quantity >= item.variant.stock_on_hand - item.variant.stock_reserved" @click="setQuantity(item, item.quantity + 1)">+</button>
+            </div>
+            <span v-else>{{ item.quantity }} шт.</span>
+            <button v-if="editingOrder" type="button" class="checkout-order-remove" @click="removeItem(item)">Видалити</button>
+          </div>
+        </article>
+        <div v-if="items.length" class="checkout-order-total"><span>До сплати:</span><b>{{ (amountDue / 100).toLocaleString('uk-UA') }} грн</b></div>
+      </section>
 
       <form class="checkout" @submit.prevent="submit">
         <div class="checkout-fields">
