@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+app_dir=/var/www/lamari
+env_file=$app_dir/.env
+chat_id=-1003987764577
+api_base=https://api.telegram.org
+
+if [[ ! -f "$env_file" ]]; then
+    echo "Помилка: файл налаштувань сайту не знайдено." >&2
+    exit 1
+fi
+
+echo "Ця команда підключить окремого Telegram-бота до замовлень test.lamari.jewelry."
+read -r -s -p "Вставте токен нового бота з BotFather і натисніть Enter: " bot_token
+echo
+
+if [[ ! "$bot_token" =~ ^[0-9]{6,12}:[A-Za-z0-9_-]{30,}$ ]]; then
+    echo "Токен не збережено: неправильний формат." >&2
+    unset bot_token
+    exit 1
+fi
+
+response_file=$(mktemp)
+new_env=
+cleanup() {
+    unset bot_token
+    rm -f "$response_file"
+    [[ -z "$new_env" ]] || rm -f "$new_env"
+}
+trap cleanup EXIT
+
+telegram_call() {
+    local method=$1
+    shift
+    printf 'silent\nshow-error\nfail-with-body\nurl = "%s/bot%s/%s"\noutput = "%s"\n' \
+        "$api_base" "$bot_token" "$method" "$response_file" |
+        curl --config - "$@"
+}
+
+if ! telegram_call getMe; then
+    echo "Токен не збережено: Telegram відхилив токен." >&2
+    exit 1
+fi
+
+bot_username=$(php -r '
+$json = json_decode(file_get_contents($argv[1]), true);
+if (($json["ok"] ?? false) !== true || empty($json["result"]["username"])) {
+    fwrite(STDERR, "Токен не збережено: Telegram не підтвердив бота.\n");
+    exit(1);
+}
+echo $json["result"]["username"];
+' "$response_file")
+
+if ! telegram_call getChat --data-urlencode "chat_id=$chat_id"; then
+    echo "Токен не збережено: бот не має доступу до групи замовлень." >&2
+    exit 1
+fi
+
+php -r '
+$json = json_decode(file_get_contents($argv[1]), true);
+if (($json["ok"] ?? false) !== true || (string) ($json["result"]["id"] ?? "") !== $argv[2]) {
+    fwrite(STDERR, "Токен не збережено: Telegram повернув іншу групу.\n");
+    exit(1);
+}
+' "$response_file" "$chat_id"
+
+if ! telegram_call sendMessage \
+    --data-urlencode "chat_id=$chat_id" \
+    --data-urlencode "text=✅ Окремий бот замовлень Lamari підключено до test-сайту."; then
+    echo "Токен не збережено: бот не зміг надіслати повідомлення в групу." >&2
+    exit 1
+fi
+
+php -r '
+$json = json_decode(file_get_contents($argv[1]), true);
+if (($json["ok"] ?? false) !== true) {
+    fwrite(STDERR, "Токен не збережено: Telegram не підтвердив доставку повідомлення.\n");
+    exit(1);
+}
+' "$response_file"
+
+backup_dir=/home/sgadmin/lamari-deploy-backups/env
+mkdir -p "$backup_dir"
+cp -a "$env_file" "$backup_dir/.env.before-telegram-orders-bot-$(date -u +%Y%m%d-%H%M%S)"
+
+new_env=$(mktemp "$app_dir/.env.telegram-orders.XXXXXX")
+chmod 640 "$new_env"
+sudo -n chown --reference="$env_file" "$new_env"
+
+token_written=false
+enabled_written=false
+chat_written=false
+while IFS= read -r line || [[ -n "$line" ]]; do
+    case "$line" in
+        TELEGRAM_ORDERS_BOT_TOKEN=*) printf 'TELEGRAM_ORDERS_BOT_TOKEN=%s\n' "$bot_token" >> "$new_env"; token_written=true ;;
+        TELEGRAM_ORDERS_ENABLED=*) printf 'TELEGRAM_ORDERS_ENABLED=true\n' >> "$new_env"; enabled_written=true ;;
+        TELEGRAM_ORDERS_CHAT_ID=*) printf 'TELEGRAM_ORDERS_CHAT_ID=%s\n' "$chat_id" >> "$new_env"; chat_written=true ;;
+        *) printf '%s\n' "$line" >> "$new_env" ;;
+    esac
+done < "$env_file"
+
+[[ "$token_written" == true ]] || printf 'TELEGRAM_ORDERS_BOT_TOKEN=%s\n' "$bot_token" >> "$new_env"
+[[ "$enabled_written" == true ]] || printf 'TELEGRAM_ORDERS_ENABLED=true\n' >> "$new_env"
+[[ "$chat_written" == true ]] || printf 'TELEGRAM_ORDERS_CHAT_ID=%s\n' "$chat_id" >> "$new_env"
+
+mv "$new_env" "$env_file"
+new_env=
+unset bot_token
+
+cd "$app_dir"
+php artisan config:clear >/dev/null
+php artisan cache:clear >/dev/null
+
+echo "Готово: @$bot_username перевірено, тестове повідомлення доставлено, сайт перемкнено на окремого бота замовлень."
