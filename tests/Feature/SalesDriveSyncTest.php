@@ -55,6 +55,22 @@ class SalesDriveSyncTest extends TestCase
             && $request['data']['statusId'] === 11);
     }
 
+    public function test_sends_base_sku_to_salesdrive_without_changing_internal_variant_sku(): void
+    {
+        $this->fakeSalesDrive();
+        [$order] = $this->records();
+        $item = $order->items()->firstOrFail();
+        $item->update(['sku' => 'K423-43', 'name' => 'Кольє — 43 см']);
+
+        app(SalesDriveSyncService::class)->syncPending($order->fresh());
+
+        $this->assertSame('K423-43', $item->fresh()->sku);
+        Http::assertSent(fn ($request): bool => $request->url() === 'https://lamari.salesdrive.me/handler/'
+            && $request['products'][0]['id'] === 'K423'
+            && $request['products'][0]['sku'] === 'K423'
+            && $request['products'][0]['name'] === 'Кольє — 43 см');
+    }
+
     public function test_paid_sync_updates_same_order_adds_one_idempotent_payment(): void
     {
         $this->fakeSalesDrive();

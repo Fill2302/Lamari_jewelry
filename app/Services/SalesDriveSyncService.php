@@ -37,11 +37,11 @@ class SalesDriveSyncService
                 'phone' => $order->phone,
                 'email' => $order->email,
                 'products' => $order->items->map(fn ($item): array => [
-                    'id' => $item->sku,
+                    'id' => $this->externalSku($item->sku, $item->name),
                     'name' => $item->name,
                     'costPerItem' => $item->unit_price_amount / 100,
                     'amount' => $item->quantity,
-                    'sku' => $item->sku,
+                    'sku' => $this->externalSku($item->sku, $item->name),
                 ])->values()->all(),
                 'payment_method' => $paymentMethod,
                 'shipping_method' => $deliveryMethod,
@@ -133,5 +133,16 @@ class SalesDriveSyncService
     private function warehouseNumber(string $address): string
     {
         return preg_match('/(?:№|#|відділення\s*)\s*(\d+)/iu', $address, $matches) ? $matches[1] : $address;
+    }
+
+    private function externalSku(string $sku, string $itemName): string
+    {
+        if (! preg_match('/\s—\s*(\d+(?:[.,]\d+)?)\s*см\s*$/iu', $itemName, $matches)) {
+            return $sku;
+        }
+
+        $length = preg_quote($matches[1], '/');
+
+        return preg_replace('/-'.$length.'$/u', '', $sku) ?: $sku;
     }
 }
