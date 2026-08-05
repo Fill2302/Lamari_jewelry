@@ -16,9 +16,9 @@ return [
         'source' => env('SALESDRIVE_SOURCE', 'test.lamari.jewelry'),
         'orders_key' => env('SALESDRIVE_ORDERS_API_KEY'),
         'payments_key' => env('SALESDRIVE_PAYMENTS_API_KEY'),
-        'pending_status' => env('SALESDRIVE_PENDING_STATUS', 'Очікує оплати'),
-        'paid_status' => env('SALESDRIVE_PAID_STATUS', 'Оплачено'),
-        'payment_method' => env('SALESDRIVE_PAYMENT_METHOD', 'Онлайн-оплата'),
+        'pending_status' => env('SALESDRIVE_PENDING_STATUS', 'Оплата'),
+        'paid_status' => env('SALESDRIVE_PAID_STATUS', 'Підтверджено'),
+        'payment_method' => env('SALESDRIVE_PAYMENT_METHOD', 'Оплата карткою на сайті'),
         'delivery_method' => env('SALESDRIVE_DELIVERY_METHOD', 'Нова Пошта'),
     ],
 

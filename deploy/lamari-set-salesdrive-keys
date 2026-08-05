@@ -44,13 +44,36 @@ fi
 php -r '
 $json = json_decode(file_get_contents($argv[1]), true);
 $names = array_column($json["data"] ?? [], "name");
-foreach (["Очікує оплати", "Оплачено"] as $required) {
+foreach (["Оплата", "Підтверджено"] as $required) {
     if (!in_array($required, $names, true)) {
         fwrite(STDERR, "Ключі не збережено: у CRM не знайдено статус «{$required}».\n");
         exit(1);
     }
 }
 ' "$response_file"
+
+for lookup in \
+    "payment-methods|Оплата карткою на сайті|спосіб оплати" \
+    "delivery-methods|Нова Пошта|спосіб доставки"
+do
+    IFS='|' read -r endpoint required label <<< "$lookup"
+    http_code=$(
+        printf 'silent\nshow-error\nheader = "X-Api-Key: %s"\nurl = "%s/api/%s/"\noutput = "%s"\nwrite-out = "%%{http_code}"\n' \
+            "$orders_key" "$base_url" "$endpoint" "$response_file" | curl --config -
+    )
+    if [[ "$http_code" != "200" ]]; then
+        echo "Ключі не збережено: не вдалося перевірити $label (HTTP $http_code)." >&2
+        exit 1
+    fi
+    php -r '
+$json = json_decode(file_get_contents($argv[1]), true);
+$names = array_column($json["data"] ?? [], "name");
+if (!in_array($argv[2], $names, true)) {
+    fwrite(STDERR, "Ключі не збережено: у CRM не знайдено {$argv[3]} «{$argv[2]}».\n");
+    exit(1);
+}
+' "$response_file" "$required" "$label"
+done
 
 backup_dir=/home/sgadmin/lamari-deploy-backups/env
 mkdir -p "$backup_dir"
@@ -63,11 +86,19 @@ sudo -n chown --reference="$env_file" "$new_env"
 orders_written=false
 payments_written=false
 enabled_written=false
+pending_status_written=false
+paid_status_written=false
+payment_method_written=false
+delivery_method_written=false
 while IFS= read -r line || [[ -n "$line" ]]; do
     case "$line" in
         SALESDRIVE_ORDERS_API_KEY=*) printf 'SALESDRIVE_ORDERS_API_KEY=%s\n' "$orders_key" >> "$new_env"; orders_written=true ;;
         SALESDRIVE_PAYMENTS_API_KEY=*) printf 'SALESDRIVE_PAYMENTS_API_KEY=%s\n' "$payments_key" >> "$new_env"; payments_written=true ;;
         SALESDRIVE_ENABLED=*) printf 'SALESDRIVE_ENABLED=true\n' >> "$new_env"; enabled_written=true ;;
+        SALESDRIVE_PENDING_STATUS=*) printf 'SALESDRIVE_PENDING_STATUS=Оплата\n' >> "$new_env"; pending_status_written=true ;;
+        SALESDRIVE_PAID_STATUS=*) printf 'SALESDRIVE_PAID_STATUS=Підтверджено\n' >> "$new_env"; paid_status_written=true ;;
+        SALESDRIVE_PAYMENT_METHOD=*) printf 'SALESDRIVE_PAYMENT_METHOD=Оплата карткою на сайті\n' >> "$new_env"; payment_method_written=true ;;
+        SALESDRIVE_DELIVERY_METHOD=*) printf 'SALESDRIVE_DELIVERY_METHOD=Нова Пошта\n' >> "$new_env"; delivery_method_written=true ;;
         *) printf '%s\n' "$line" >> "$new_env" ;;
     esac
 done < "$env_file"
@@ -75,6 +106,11 @@ done < "$env_file"
 [[ "$orders_written" == true ]] || printf 'SALESDRIVE_ORDERS_API_KEY=%s\n' "$orders_key" >> "$new_env"
 [[ "$payments_written" == true ]] || printf 'SALESDRIVE_PAYMENTS_API_KEY=%s\n' "$payments_key" >> "$new_env"
 [[ "$enabled_written" == true ]] || printf 'SALESDRIVE_ENABLED=true\n' >> "$new_env"
+
+[[ "$pending_status_written" == true ]] || printf 'SALESDRIVE_PENDING_STATUS=Оплата\n' >> "$new_env"
+[[ "$paid_status_written" == true ]] || printf 'SALESDRIVE_PAID_STATUS=Підтверджено\n' >> "$new_env"
+[[ "$payment_method_written" == true ]] || printf 'SALESDRIVE_PAYMENT_METHOD=Оплата карткою на сайті\n' >> "$new_env"
+[[ "$delivery_method_written" == true ]] || printf 'SALESDRIVE_DELIVERY_METHOD=Нова Пошта\n' >> "$new_env"
 
 mv "$new_env" "$env_file"
 new_env=

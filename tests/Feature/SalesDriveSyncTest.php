@@ -26,9 +26,9 @@ class SalesDriveSyncTest extends TestCase
             'services.salesdrive.base_url' => 'https://lamari.salesdrive.me',
             'services.salesdrive.orders_key' => 'orders-secret',
             'services.salesdrive.payments_key' => 'payments-secret',
-            'services.salesdrive.pending_status' => 'Очікує оплати',
-            'services.salesdrive.paid_status' => 'Оплачено',
-            'services.salesdrive.payment_method' => 'Онлайн-оплата',
+            'services.salesdrive.pending_status' => 'Оплата',
+            'services.salesdrive.paid_status' => 'Підтверджено',
+            'services.salesdrive.payment_method' => 'Оплата карткою на сайті',
             'services.salesdrive.delivery_method' => 'Нова Пошта',
         ]);
     }
@@ -100,9 +100,9 @@ class SalesDriveSyncTest extends TestCase
     {
         Http::fake(function ($request) use ($orderUpdate) {
             return match ($request->url()) {
-                'https://lamari.salesdrive.me/api/payment-methods/' => Http::response(['success' => true, 'data' => [['id' => 5, 'name' => 'Онлайн-оплата', 'parameter' => 'online']]]),
+                'https://lamari.salesdrive.me/api/payment-methods/' => Http::response(['success' => true, 'data' => [['id' => 5, 'name' => 'Оплата карткою на сайті', 'parameter' => 'online']]]),
                 'https://lamari.salesdrive.me/api/delivery-methods/' => Http::response(['success' => true, 'data' => [['id' => 7, 'name' => 'Нова Пошта', 'parameter' => 'novaposhta']]]),
-                'https://lamari.salesdrive.me/api/statuses/' => Http::response(['success' => true, 'data' => [['id' => 11, 'name' => 'Очікує оплати'], ['id' => 12, 'name' => 'Оплачено']]]),
+                'https://lamari.salesdrive.me/api/statuses/' => Http::response(['success' => true, 'data' => [['id' => 11, 'name' => 'Оплата'], ['id' => 12, 'name' => 'Підтверджено']]]),
                 'https://lamari.salesdrive.me/handler/' => Http::response(['success' => true, 'data' => ['orderId' => 321, 'userId' => 1]]),
                 'https://lamari.salesdrive.me/api/order/update/' => $orderUpdate ? $orderUpdate() : Http::response(['success' => true]),
                 'https://lamari.salesdrive.me/api/payment/' => Http::response(['success' => true, 'data' => ['paymentId' => 654]]),
