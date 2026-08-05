@@ -1491,6 +1491,17 @@ nav {
     padding: 0.65rem 0.9rem;
     cursor: pointer;
 }
+.variant-pills--round button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.17rem;
+    height: 2.17rem;
+    padding: 0.25rem;
+    border-radius: 50%;
+    line-height: 1;
+    white-space: nowrap;
+}
 .variant-pills button.active {
     background: #211b18;
     color: white;
