@@ -1499,6 +1499,7 @@ nav {
     height: 2.17rem;
     padding: 0.25rem;
     border-radius: 50%;
+    font-size: 0.65rem;
     line-height: 1;
     white-space: nowrap;
 }
@@ -1507,7 +1508,7 @@ nav {
     background: #211b18;
 }
 .variant-pills--round button.active {
-    background: #b59b87;
+    background: #3b241b;
 }
 .buy {
     width: 100%;
