@@ -298,7 +298,7 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
           <div class="gallery-dots"><button v-for="(_,index) in media" :key="index" :class="{active:activeMedia===index}" :aria-label="`Медіа ${index+1}`" @click="goToMedia(index)"></button></div>
         </template>
       </div>
-      <aside class="buy-panel">
+      <aside class="buy-panel" :class="{ 'buy-panel--single-standard': !showVariantSelector }">
         <button class="product-favorite" :class="{ active: isFavorite }" :aria-label="isFavorite ? 'Видалити з обраного' : 'Додати в обране'" @click="toggleFavorite()">
           <svg viewBox="0 0 24 24"><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>
         </button>

@@ -1513,6 +1513,10 @@ nav {
 .buy {
     width: 100%;
 }
+.buy-panel--single-standard .buy {
+    display: block;
+    margin-top: 1.5rem;
+}
 .product-benefits {
     display: grid;
     gap: 0.4rem;
@@ -2431,6 +2435,12 @@ nav {
     }
     .price {
         margin: 0.5rem 0 0.8rem;
+    }
+    .buy-panel--single-standard .price {
+        margin-bottom: 0.5rem;
+    }
+    .buy-panel--single-standard .buy {
+        margin-top: 0.5rem;
     }
     .sticky-buy-bar {
         position: fixed;
