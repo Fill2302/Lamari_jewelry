@@ -178,6 +178,7 @@ Route::put('/cart/{variant}', [CartController::class, 'update'])->name('cart.upd
 Route::put('/cart/{variant}/variant', [CartController::class, 'changeVariant'])->name('cart.variant');
 Route::delete('/cart/{variant}', [CartController::class, 'remove'])->name('cart.remove');
 Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
+Route::post('/checkout/promo-code', [CheckoutController::class, 'applyPromo'])->name('checkout.promo.apply');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 Route::get('/payments/fake/{payment}', [FakePaymentController::class, 'show'])->name('payments.fake.show');
 Route::post('/payments/fake/{payment}/pay', [FakePaymentController::class, 'pay'])->name('payments.fake.pay');

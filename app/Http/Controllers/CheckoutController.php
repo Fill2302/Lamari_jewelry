@@ -6,6 +6,7 @@ use App\Services\CartService;
 use App\Services\CheckoutService;
 use App\Services\MarketingAttribution;
 use App\Services\NovaPoshtaService;
+use App\Services\PromoCodeService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -15,11 +16,36 @@ use Throwable;
 
 class CheckoutController extends Controller
 {
-    public function show(CartService $cart): Response
+    public function show(Request $request, CartService $cart, PromoCodeService $promos): Response
     {
         $items = $cart->items();
+        $subtotal = (int) collect($items)->sum('total');
+        $code = (string) $request->session()->get('promo_code', '');
+        $promo = $code !== '' ? $promos->findValid($code, $subtotal) : null;
+        if ($code !== '' && ! $promo) {
+            $request->session()->forget('promo_code');
+        }
+        $promoDiscount = $promo ? $promos->discount($promo, $subtotal) : 0;
 
-        return Inertia::render('Checkout', ['items' => $items, 'total' => collect($items)->sum('total')]);
+        return Inertia::render('Checkout', [
+            'items' => $items,
+            'total' => $subtotal,
+            'promo' => $promo ? ['code' => $promo->code, 'discount' => $promoDiscount] : null,
+            'amountDue' => $subtotal - $promoDiscount,
+        ]);
+    }
+
+    public function applyPromo(Request $request, CartService $cart, PromoCodeService $promos): SymfonyResponse
+    {
+        $data = $request->validate(['code' => ['required', 'string', 'max:64']]);
+        $subtotal = (int) collect($cart->items())->sum('total');
+        $promo = $promos->findValid($data['code'], $subtotal);
+        if (! $promo) {
+            throw ValidationException::withMessages(['code' => 'Промокод недійсний або не відповідає умовам акції.']);
+        }
+        $request->session()->put('promo_code', $promo->code);
+
+        return back();
     }
 
     public function store(Request $r, CartService $cart, CheckoutService $checkout, NovaPoshtaService $novaPoshta, MarketingAttribution $attribution): SymfonyResponse
@@ -74,8 +100,9 @@ class CheckoutController extends Controller
                 'warehouse_ref' => $warehouse['ref'],
             ],
             'marketing_attribution' => $attribution->from($r),
-        ], $cart->items(), $d['payment_method']);
+        ], $cart->items(), $d['payment_method'], (string) $r->session()->get('promo_code', ''));
         $cart->clear();
+        $r->session()->forget('promo_code');
 
         if (str_starts_with($payment['checkout_url'], config('app.url'))) {
             return redirect($payment['checkout_url']);

@@ -3,8 +3,15 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import StoreLayout from '../Layouts/StoreLayout.vue';
 
-const props = defineProps<{ items: any[], total: number }>();
+const props = defineProps<{ items: any[], total: number, promo: null | { code: string, discount: number }, amountDue: number }>();
 const discountTotal = computed(() => props.items.reduce((sum:number, item:any) => sum + (item.discount_total || 0), 0));
+const promoOpen = ref(Boolean(props.promo));
+const promoForm = useForm({ code: props.promo?.code || '' });
+
+function applyPromo() {
+  promoForm.code = promoForm.code.trim();
+  promoForm.post('/checkout/promo-code', { preserveScroll: true, onSuccess: () => { promoOpen.value = true; } });
+}
 
 const form = useForm({
   first_name: '',
@@ -245,6 +252,26 @@ function submit() {
           <div v-if="discountTotal" class="checkout-discount-row">
             <span>Ваша знижка</span>
             <b>− {{ (discountTotal / 100).toLocaleString('uk-UA') }} ₴</b>
+          </div>
+          <div class="checkout-promo">
+            <button type="button" class="checkout-promo-toggle" :aria-expanded="promoOpen" @click="promoOpen = !promoOpen">
+              <span>Промокод</span>
+              <svg viewBox="0 0 20 20" aria-hidden="true" :class="{ open: promoOpen }"><path d="m5 7.5 5 5 5-5" /></svg>
+            </button>
+            <form v-if="promoOpen" class="checkout-promo-form" @submit.prevent="applyPromo">
+              <input v-model="promoForm.code" aria-label="Промокод" autocomplete="off" placeholder="Введіть промокод" :disabled="Boolean(promo)" />
+              <button type="submit" :disabled="promoForm.processing || Boolean(promo)">{{ promo ? 'Застосовано' : 'Застосувати' }}</button>
+              <small v-if="promoForm.errors.code">{{ promoForm.errors.code }}</small>
+              <small v-else-if="promo" class="checkout-promo-success">Промокод {{ promo.code }} активовано</small>
+            </form>
+          </div>
+          <div v-if="promo" class="checkout-discount-row checkout-promo-discount">
+            <span>Знижка за промокодом</span>
+            <b>− {{ (promo.discount / 100).toLocaleString('uk-UA') }} ₴</b>
+          </div>
+          <div class="checkout-amount-due">
+            <span>До сплати</span>
+            <b>{{ (amountDue / 100).toLocaleString('uk-UA') }} ₴</b>
           </div>
           <p>Вартість доставки буде розрахована під час підтвердження замовлення.</p>
           <button class="button" :disabled="form.processing">

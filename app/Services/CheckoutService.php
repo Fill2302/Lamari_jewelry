@@ -20,9 +20,9 @@ class CheckoutService
         private TelegramOrderNotifier $telegram,
     ) {}
 
-    public function create(array $customer, array $cart, string $paymentMethod = 'online'): array
+    public function create(array $customer, array $cart, string $paymentMethod = 'online', string $promoCode = ''): array
     {
-        [$order, $payment] = DB::transaction(function () use ($customer, $cart, $paymentMethod) {
+        [$order, $payment] = DB::transaction(function () use ($customer, $cart, $paymentMethod, $promoCode) {
             if (! $cart) {
                 throw new RuntimeException('Cart is empty.');
             }$resolved = [];
@@ -48,6 +48,9 @@ class CheckoutService
                 return [$variant, $quantity, $itemTotal];
             })->all();
             $total = collect($resolved)->sum(fn (array $item): int => $item[2]);
+            $promo = $promoCode !== '' ? app(PromoCodeService::class)->findValid($promoCode, $total, true) : null;
+            $promoDiscount = $promo ? app(PromoCodeService::class)->discount($promo, $total) : 0;
+            $amountDue = $total - $promoDiscount;
             $destinations = collect($resolved)
                 ->map(fn (array $item): string => $item[0]->product->payment_destination ?? 'unassigned')
                 ->unique();
@@ -55,10 +58,13 @@ class CheckoutService
             $paymentDestination = $destinations->contains('privat') && $destinations->contains('mono')
                 ? $mixedDestination
                 : ($destinations->contains('privat') ? 'privat' : ($destinations->contains('mono') ? 'mono' : 'unassigned'));
-            $merchant = $this->selector->select($total);
+            $merchant = $this->selector->select($amountDue);
             $cashOnDelivery = $paymentMethod === 'cash_on_delivery';
             $number = (string) DB::table('order_number_sequences')->insertGetId(['created_at' => now()]);
-            $order = Order::create([...$customer, 'number' => $number, 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'payment_method' => $paymentMethod, 'payment_destination' => $paymentDestination, 'status' => $cashOnDelivery ? 'confirmed' : 'pending_payment', 'payment_status' => $cashOnDelivery ? 'cash_on_delivery' : 'pending', 'subtotal_amount' => $total, 'total_amount' => $total, 'currency' => 'UAH']);
+            $order = Order::create([...$customer, 'number' => $number, 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'payment_method' => $paymentMethod, 'payment_destination' => $paymentDestination, 'status' => $cashOnDelivery ? 'confirmed' : 'pending_payment', 'payment_status' => $cashOnDelivery ? 'cash_on_delivery' : 'pending', 'promo_code_id' => $promo?->id, 'subtotal_amount' => $total, 'discount_amount' => $promoDiscount, 'total_amount' => $amountDue, 'currency' => 'UAH']);
+            if ($promo) {
+                $promo->increment('used_count');
+            }
             foreach ($resolved as [$v,$q,$itemTotal]) {
                 $price = (int) round($itemTotal / $q);
                 $order->items()->create(['product_variant_id' => $v->id, 'sku' => $v->sku, 'name' => $v->product->name.' — '.$v->name, 'payment_destination' => $v->product->payment_destination ?? 'unassigned', 'quantity' => $q, 'unit_price_amount' => $price, 'total_amount' => $itemTotal]);
@@ -68,7 +74,7 @@ class CheckoutService
                 return [$order, null];
             }
 
-            $payment = Payment::create(['order_id' => $order->id, 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'provider' => $this->provider->name(), 'amount' => $total, 'currency' => 'UAH', 'idempotency_key' => (string) Str::uuid()]);
+            $payment = Payment::create(['order_id' => $order->id, 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'provider' => $this->provider->name(), 'amount' => $amountDue, 'currency' => 'UAH', 'idempotency_key' => (string) Str::uuid()]);
 
             return [$order, $payment];
         });

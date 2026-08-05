@@ -1916,6 +1916,63 @@ nav {
     margin-top: 0.75rem;
     font-size: 0.9rem;
 }
+.checkout-promo {
+    margin-top: 1rem;
+    border-top: 1px solid #e4ddd6;
+    border-bottom: 1px solid #e4ddd6;
+}
+.checkout-promo-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.9rem 0;
+    border: 0;
+    background: transparent;
+    color: #211b18;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.checkout-promo-toggle svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    transition: transform 0.2s ease;
+}
+.checkout-promo-toggle svg.open { transform: rotate(180deg); }
+.checkout-promo-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.55rem;
+    padding: 0 0 0.9rem;
+}
+.checkout-promo-form input {
+    min-width: 0;
+    padding: 0.7rem 0.75rem;
+    border: 1px solid #cfc5ba;
+}
+.checkout-promo-form button {
+    padding: 0.7rem 1rem;
+    border: 1px solid #211b18;
+    background: #211b18;
+    color: #fff;
+    cursor: pointer;
+}
+.checkout-promo-form small { grid-column: 1 / -1; color: #b52d1d; }
+.checkout-promo-form .checkout-promo-success { color: #3e6b48; }
+.checkout-promo-discount { margin-bottom: 0.75rem; }
+.checkout-amount-due {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+    font-size: 1.1rem;
+}
+.checkout-amount-due b { font-size: 1.25rem; }
 .checkout-summary > p {
     margin: 1rem 0 0;
     color: #746b64;

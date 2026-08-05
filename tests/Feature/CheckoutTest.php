@@ -8,6 +8,7 @@ use App\Models\MerchantAccount;
 use App\Models\PaymentRoutingSetting;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\PromoCode;
 use App\Services\CheckoutService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -36,6 +37,54 @@ class CheckoutTest extends TestCase
         $this->assertSame(2, $v->fresh()->stock_reserved);
         $this->assertNotNull($order->merchant_account_id);
         $this->assertNotNull($order->legal_entity_id);
+    }
+
+    public function test_valid_promo_code_reduces_order_and_payment_amount(): void
+    {
+        $variant = $this->variant(price: 10000);
+        $promo = PromoCode::create([
+            'code' => 'LAMARI10',
+            'discount_type' => 'percent',
+            'discount_value' => 10,
+            'is_active' => true,
+        ]);
+
+        [$order] = $this->app->make(CheckoutService::class)->create(
+            ['customer_name' => 'Filip', 'email' => 'f@example.com', 'phone' => '+380000000000', 'shipping_address' => ['city' => 'Kyiv']],
+            [['variant' => $variant, 'quantity' => 1]],
+            'online',
+            'lamari10',
+        );
+
+        $this->assertSame(10000, $order->subtotal_amount);
+        $this->assertSame(1000, $order->discount_amount);
+        $this->assertSame(9000, $order->total_amount);
+        $this->assertSame($promo->id, $order->promo_code_id);
+        $this->assertSame(9000, $order->payments->first()->amount);
+        $this->assertSame(1, $promo->fresh()->used_count);
+    }
+
+    public function test_invalid_or_ineligible_promo_code_is_not_applied(): void
+    {
+        $variant = $this->variant(price: 10000);
+        PromoCode::create([
+            'code' => 'BIGORDER',
+            'discount_type' => 'fixed',
+            'discount_value' => 5000,
+            'minimum_order_amount' => 20000,
+            'is_active' => true,
+        ]);
+
+        [$order] = $this->app->make(CheckoutService::class)->create(
+            ['customer_name' => 'Filip', 'email' => 'f@example.com', 'phone' => '+380000000000', 'shipping_address' => ['city' => 'Kyiv']],
+            [['variant' => $variant, 'quantity' => 1]],
+            'online',
+            'BIGORDER',
+        );
+
+        $this->assertNull($order->promo_code_id);
+        $this->assertSame(0, $order->discount_amount);
+        $this->assertSame(10000, $order->total_amount);
     }
 
     public function test_new_order_numbers_start_at_one_and_increment(): void
