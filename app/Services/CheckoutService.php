@@ -17,7 +17,7 @@ class CheckoutService
     public function __construct(
         private MerchantSelector $selector,
         private PaymentProvider $provider,
-        private SalesDriveSyncService $salesDrive,
+        private TelegramOrderNotifier $telegram,
     ) {}
 
     public function create(array $customer, array $cart, string $paymentMethod = 'online'): array
@@ -72,11 +72,7 @@ class CheckoutService
             return [$order, $payment];
         });
 
-        try {
-            $this->salesDrive->syncPending($order);
-        } catch (\Throwable $e) {
-            report($e);
-        }
+        $this->telegram->notifyCreated($order->loadMissing('items'));
 
         if (! $payment) {
             return [$order, ['checkout_url' => route('orders.thank-you', $order)]];

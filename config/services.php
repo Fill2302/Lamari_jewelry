@@ -22,6 +22,13 @@ return [
         'delivery_method' => env('SALESDRIVE_DELIVERY_METHOD', 'Нова Пошта'),
     ],
 
+    'telegram_orders' => [
+        'enabled' => env('TELEGRAM_ORDERS_ENABLED', false),
+        'bot_token' => env('TELEGRAM_ORDERS_BOT_TOKEN'),
+        'chat_id' => env('TELEGRAM_ORDERS_CHAT_ID'),
+        'source' => env('TELEGRAM_ORDERS_SOURCE', 'test.lamari.jewelry'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

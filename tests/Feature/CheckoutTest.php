@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\CheckoutService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class CheckoutTest extends TestCase
@@ -60,6 +61,23 @@ class CheckoutTest extends TestCase
         $this->assertSame('confirmed', $order->status);
         $this->assertCount(0, $order->payments);
         $this->assertSame(route('orders.thank-you', $order), $checkout['checkout_url']);
+    }
+
+    public function test_unpaid_checkout_does_not_create_a_salesdrive_order(): void
+    {
+        config([
+            'services.salesdrive.enabled' => true,
+            'services.salesdrive.orders_key' => 'orders-secret',
+            'services.salesdrive.payments_key' => 'payments-secret',
+        ]);
+        Http::fake();
+
+        $this->app->make(CheckoutService::class)->create(
+            ['customer_name' => 'Filip', 'email' => 'f@example.com', 'phone' => '+380000000000', 'shipping_address' => ['city' => 'Kyiv']],
+            [['variant' => $this->variant(), 'quantity' => 1]],
+        );
+
+        Http::assertNotSent(fn ($request): bool => str_contains($request->url(), 'salesdrive.me'));
     }
 
     public function test_mixed_bank_cart_routes_entire_order_to_privatbank(): void

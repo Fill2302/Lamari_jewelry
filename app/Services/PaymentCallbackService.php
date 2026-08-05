@@ -13,6 +13,7 @@ class PaymentCallbackService
     public function __construct(
         private PaymentProvider $provider,
         private SalesDriveSyncService $salesDrive,
+        private TelegramOrderNotifier $telegram,
     ) {}
 
     public function handle(string $raw, ?string $signature): bool
@@ -23,7 +24,8 @@ class PaymentCallbackService
 
         $cb = $this->provider->parseCallback(json_decode($raw, true, flags: JSON_THROW_ON_ERROR));
 
-        return DB::transaction(function () use ($cb) {
+        $processedPayment = null;
+        $processed = DB::transaction(function () use ($cb, &$processedPayment) {
             $event = WebhookEvent::firstOrCreate(['provider' => $this->provider->name(), 'external_id' => $cb->externalId], ['event_type' => 'payment.updated', 'signature_valid' => true, 'payload' => $cb->payload]);
             if (! $event->wasRecentlyCreated || $event->processed_at) {
                 return false;
@@ -50,11 +52,18 @@ class PaymentCallbackService
                 $payment->order()->update(['payment_status' => 'paid', 'status' => 'confirmed']);
                 $payment->refresh()->load('order.items');
                 $this->salesDrive->syncPaid($payment);
+                $processedPayment = $payment;
             }
 
             $event->update(['status' => 'processed', 'processed_at' => now()]);
 
             return true;
         });
+
+        if ($processedPayment) {
+            $this->telegram->notifyPaid($processedPayment);
+        }
+
+        return $processed;
     }
 }
