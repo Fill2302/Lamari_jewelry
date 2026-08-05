@@ -264,6 +264,7 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
         <figure
           v-for="item in carouselMedia"
           :key="item.cloneKey"
+          :class="{ 'carousel-clone': item.cloneKey.includes('clone') }"
           @touchstart="item.type === 'image' && startImageGesture($event, item.cloneKey)"
           @touchmove="item.type === 'image' && moveImageGesture($event, item.cloneKey)"
           @touchend="item.type === 'image' && endImageGesture($event)"
