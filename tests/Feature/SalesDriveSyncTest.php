@@ -30,6 +30,8 @@ class SalesDriveSyncTest extends TestCase
             'services.salesdrive.paid_status' => 'Підтверджено',
             'services.salesdrive.payment_method' => 'Оплата карткою на сайті',
             'services.salesdrive.delivery_method' => 'Нова Пошта',
+            'services.salesdrive.organization_id' => 5,
+            'services.salesdrive.account_number' => 'monobank-test-account',
         ]);
     }
 
@@ -66,6 +68,8 @@ class SalesDriveSyncTest extends TestCase
         $this->assertSame(654, $payment->fresh()->salesdrive_payment_id);
         Http::assertSent(fn ($request): bool => $request->url() === 'https://lamari.salesdrive.me/api/payment/'
             && $request->header('X-Api-Key')[0] === 'payments-secret'
+            && $request['organizationId'] === 5
+            && $request['accountNumber'] === 'monobank-test-account'
             && $request['orderId'] === 321
             && $request['orderExternalId'] === 'LAM-SD-TEST'
             && $request['sum'] === 1

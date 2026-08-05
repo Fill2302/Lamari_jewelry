@@ -20,6 +20,8 @@ return [
         'paid_status' => env('SALESDRIVE_PAID_STATUS', 'Підтверджено'),
         'payment_method' => env('SALESDRIVE_PAYMENT_METHOD', 'Оплата карткою на сайті'),
         'delivery_method' => env('SALESDRIVE_DELIVERY_METHOD', 'Нова Пошта'),
+        'organization_id' => env('SALESDRIVE_ORGANIZATION_ID'),
+        'account_number' => env('SALESDRIVE_ACCOUNT_NUMBER'),
     ],
 
     'telegram_orders' => [

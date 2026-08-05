@@ -86,9 +86,14 @@ class SalesDriveSyncService
             'statusId' => $this->statusId((string) config('services.salesdrive.paid_status')),
             'paymentDate' => now()->toDateTimeString(),
         ]);
+        if ((int) config('services.salesdrive.organization_id') < 1 || blank(config('services.salesdrive.account_number'))) {
+            throw new RuntimeException('SalesDrive organization and account are not configured.');
+        }
         $paymentId = $this->client->addPayment([
+            'organizationId' => (int) config('services.salesdrive.organization_id'),
             'datetime' => now()->toIso8601String(),
             'timezone' => config('app.timezone'),
+            'accountNumber' => (string) config('services.salesdrive.account_number'),
             'sum' => $payment->amount / 100,
             'description' => 'Передоплата Mono за '.$order->number,
             'uniqueId' => 'lamari-mono-'.$payment->idempotency_key,
