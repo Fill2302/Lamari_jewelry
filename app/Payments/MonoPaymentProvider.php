@@ -30,7 +30,7 @@ class MonoPaymentProvider implements PaymentProvider
                 'comment' => 'Замовлення '.$payment->order->number,
                 'customerEmails' => array_values(array_filter([$payment->order->email])),
                 'basketOrder' => $payment->order->items->map(fn ($item): array => [
-                    'name' => mb_substr($item->name, 0, 128),
+                    'name' => mb_substr($item->receipt_name ?: $item->name, 0, 128),
                     'qty' => $item->quantity,
                     'sum' => $item->unit_price_amount,
                     'total' => $item->total_amount,
@@ -61,8 +61,7 @@ class MonoPaymentProvider implements PaymentProvider
     private function paymentDestination(Payment $payment): string
     {
         $names = $payment->order->items
-            ->pluck('name')
-            ->map(fn (string $name): string => trim(explode(' — ', $name, 2)[0]))
+            ->map(fn ($item): string => trim((string) ($item->receipt_name ?: explode(' — ', $item->name, 2)[0])))
             ->filter()
             ->unique()
             ->implode(', ');

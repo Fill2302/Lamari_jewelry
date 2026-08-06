@@ -53,6 +53,9 @@ class ProductForm
                     ->required(),
                 TextInput::make('name')
                     ->required(),
+                TextInput::make('receipt_name')
+                    ->label('Назва товару для чека')
+                    ->helperText('Передається у фіскальний чек і призначення платежу. Для старих товарів перенесена з поля PPO.'),
                 TextInput::make('slug')
                     ->required(),
                 Textarea::make('description')

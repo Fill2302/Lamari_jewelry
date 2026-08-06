@@ -67,7 +67,7 @@ class CheckoutService
             }
             foreach ($resolved as [$v,$q,$itemTotal]) {
                 $price = (int) round($itemTotal / $q);
-                $order->items()->create(['product_variant_id' => $v->id, 'sku' => $v->sku, 'name' => $v->product->name.' — '.$v->name, 'payment_destination' => $v->product->payment_destination ?? 'unassigned', 'quantity' => $q, 'unit_price_amount' => $price, 'total_amount' => $itemTotal]);
+                $order->items()->create(['product_variant_id' => $v->id, 'sku' => $v->sku, 'name' => $v->product->name.' — '.$v->name, 'receipt_name' => $v->product->receipt_name ?: $v->product->name, 'payment_destination' => $v->product->payment_destination ?? 'unassigned', 'quantity' => $q, 'unit_price_amount' => $price, 'total_amount' => $itemTotal]);
             }
 
             if ($cashOnDelivery) {
