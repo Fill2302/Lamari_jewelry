@@ -15,6 +15,7 @@ use Inertia\Inertia;
 
 Route::get('/', [StoreController::class, 'home'])->name('home');
 Route::get('/catalog', [StoreController::class, 'catalog'])->name('catalog');
+Route::get('/favorites', [StoreController::class, 'favorites'])->name('favorites');
 Route::get('/categories/{category:slug}', [StoreController::class, 'category'])->name('categories.show');
 Route::get('/products/{product:slug}', [StoreController::class, 'product'])->name('products.show');
 Route::get('/api/delivery/nova-poshta/cities', [NovaPoshtaController::class, 'cities'])->middleware('throttle:60,1');

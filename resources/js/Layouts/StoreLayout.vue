@@ -113,7 +113,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleEscape));
       <button type="button" aria-label="Пошук у каталозі" class="header-icon" @click="openSearch">
         <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg>
       </button>
-      <Link href="/catalog" :aria-label="`Обране: ${favoriteCount}`" class="header-icon icon-with-count">
+      <Link href="/favorites" :aria-label="`Вподобане: ${favoriteCount}`" class="header-icon icon-with-count">
         <svg viewBox="0 0 24 24"><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>
         <small>{{ favoriteCount }}</small>
       </Link>

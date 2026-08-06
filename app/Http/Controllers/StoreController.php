@@ -138,6 +138,17 @@ class StoreController extends Controller
         ]);
     }
 
+    public function favorites(): Response
+    {
+        return Inertia::render('Favorites', [
+            'products' => Product::where('is_active', true)
+                ->with('variants', 'media')
+                ->orderBy('catalog_position')
+                ->orderBy('id')
+                ->get(),
+        ]);
+    }
+
     public function category(Request $request, Category $category): Response
     {
         $category->load(['children' => fn ($query) => $query
