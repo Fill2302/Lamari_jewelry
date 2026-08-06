@@ -16,7 +16,7 @@ use Inertia\Response;
 
 class StoreController extends Controller
 {
-    public function home(): Response
+    public function home(Request $request): Response
     {
         $homepage = HomepageSetting::query()->first();
         $productRelations = ['variants', 'media'];
@@ -42,20 +42,30 @@ class StoreController extends Controller
                 ->get();
         }
 
-        return Inertia::render('Home', [
-            'categories' => Category::whereNull('parent_id')
+        $categories = Category::whereNull('parent_id')
                 ->where('is_active', true)
                 ->where('show_on_home', true)
-                ->with([
-                    'children',
-                    'memberProducts' => fn ($query) => $query
-                        ->where('is_active', true)
-                        ->with(['variants', 'media'])
-                        ->limit(4),
-                ])
+                ->with('children')
                 ->orderBy('position')
                 ->orderBy('id')
-                ->get(),
+                ->get();
+
+        $categories->each(function (Category $category) use ($request): void {
+            $products = Product::where('is_active', true)
+                ->whereHas('categories', fn ($categories) => $categories
+                    ->where('categories.id', $category->id));
+
+            $category->setRelation('memberProducts', $this->applyCatalogFilters(
+                $products,
+                $request,
+                [],
+                'category_position',
+                $category->id,
+            )->with(['variants', 'media'])->limit(4)->get());
+        });
+
+        return Inertia::render('Home', [
+            'categories' => $categories,
             'newProducts' => $newProducts,
             'hitProducts' => $hitProducts,
             'homepage' => $homepage,

@@ -9,7 +9,7 @@ use Tests\TestCase;
 
 class StorefrontTest extends TestCase
 {
-    public function test_homepage_categories_include_up_to_four_active_products(): void
+    public function test_homepage_categories_match_the_first_four_products_in_category_catalog_order(): void
     {
         $category = Category::create([
             'name' => 'Кольє',
@@ -18,21 +18,39 @@ class StorefrontTest extends TestCase
             'show_on_home' => true,
         ]);
 
-        $products = collect(range(1, 5))->map(fn (int $position) => Product::create([
+        $products = collect(range(1, 6))->map(fn (int $position) => Product::create([
             'category_id' => $category->id,
             'name' => "Кольє {$position}",
             'slug' => "homepage-necklace-{$position}",
             'description' => '',
             'is_active' => true,
-            'category_position' => $position,
+            'category_position' => 1000,
         ]));
         $products->last()->update(['is_active' => false]);
+
+        $category->memberProducts()->sync([
+            $products[0]->id => ['position' => 3],
+            $products[1]->id => ['position' => 1],
+            $products[2]->id => ['position' => 1],
+            $products[3]->id => ['position' => 2],
+            $products[4]->id => ['position' => 4],
+            $products[5]->id => ['position' => 0],
+        ]);
+
+        $expected = [$products[2]->id, $products[1]->id, $products[3]->id, $products[0]->id];
 
         $this->get('/')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->has('categories.0.member_products', 4)
-                ->where('categories.0.member_products.0.id', $products->first()->id));
+                ->where('categories.0.member_products', fn ($items) => $items
+                    ->pluck('id')->all() === $expected));
+
+        $this->get("/categories/{$category->slug}")
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('products', fn ($items) => $items
+                    ->take(4)->pluck('id')->all() === $expected));
     }
 
     use RefreshDatabase;
