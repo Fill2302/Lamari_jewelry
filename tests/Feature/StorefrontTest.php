@@ -39,12 +39,33 @@ class StorefrontTest extends TestCase
 
         $expected = [$products[2]->id, $products[1]->id, $products[3]->id, $products[0]->id];
 
+        $secondCategory = Category::create([
+            'name' => 'Сережки',
+            'slug' => 'homepage-earrings',
+            'is_active' => true,
+            'show_on_home' => true,
+        ]);
+        $secondProducts = collect(range(1, 4))->map(fn (int $position) => Product::create([
+            'category_id' => $secondCategory->id,
+            'name' => "Сережки {$position}",
+            'slug' => "homepage-earrings-{$position}",
+            'description' => '',
+            'is_active' => true,
+            'category_position' => $position,
+        ]));
+        $secondCategory->memberProducts()->sync($secondProducts
+            ->mapWithKeys(fn (Product $product, int $index) => [$product->id => ['position' => $index + 1]])
+            ->all());
+
         $this->get('/')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->has('categories.0.member_products', 4)
                 ->where('categories.0.member_products', fn ($items) => $items
-                    ->pluck('id')->all() === $expected));
+                    ->pluck('id')->all() === $expected)
+                ->has('categories.1.member_products', 4)
+                ->where('categories.1.member_products', fn ($items) => $items
+                    ->pluck('id')->all() === $secondProducts->pluck('id')->all()));
 
         $this->get("/categories/{$category->slug}")
             ->assertOk()
