@@ -100,7 +100,7 @@ const faqs = computed(() => (props.homepage?.faq_items || []).map((item:any) => 
             <h3>{{ product.name }}</h3>
             <p><del v-if="originalPrice(product)">{{ (originalPrice(product)/100).toLocaleString('uk-UA') }} ₴</del>{{ (price(product)/100).toLocaleString('uk-UA') }} ₴</p>
           </Link>
-          <button type="button" class="home-product-favorite" :class="{ active: favorites.includes(product.id) }" :aria-label="favorites.includes(product.id) ? 'Видалити з вподобаного' : 'Додати до вподобаного'" @click="toggleFavorite(product.id)">
+          <button type="button" class="catalog-favorite" :class="{ active: favorites.includes(product.id) }" :aria-label="favorites.includes(product.id) ? 'Видалити з вподобаного' : 'Додати до вподобаного'" @click="toggleFavorite(product.id)">
             <svg viewBox="0 0 24 24"><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>
           </button>
         </article>
@@ -116,7 +116,7 @@ const faqs = computed(() => (props.homepage?.faq_items || []).map((item:any) => 
             <h3>{{ product.name }}</h3>
             <p><del v-if="originalPrice(product)">{{ (originalPrice(product)/100).toLocaleString('uk-UA') }} ₴</del>{{ (price(product)/100).toLocaleString('uk-UA') }} ₴</p>
           </Link>
-          <button type="button" class="home-product-favorite" :class="{ active: favorites.includes(product.id) }" :aria-label="favorites.includes(product.id) ? 'Видалити з вподобаного' : 'Додати до вподобаного'" @click="toggleFavorite(product.id)">
+          <button type="button" class="catalog-favorite" :class="{ active: favorites.includes(product.id) }" :aria-label="favorites.includes(product.id) ? 'Видалити з вподобаного' : 'Додати до вподобаного'" @click="toggleFavorite(product.id)">
             <svg viewBox="0 0 24 24"><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>
           </button>
         </article>
