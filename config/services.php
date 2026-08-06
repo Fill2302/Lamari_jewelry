@@ -6,8 +6,16 @@ return [
         'default' => env('PAYMENT_PROVIDER', 'fake'),
         'fake_secret' => env('FAKE_PAYMENT_SECRET', 'lamari-local-fake-secret'),
         'mono_token' => env('MONO_MERCHANT_TOKEN'),
+        'mono_tokens' => [
+            'mono' => env('MONO_FOP2_MERCHANT_TOKEN', env('MONO_MERCHANT_TOKEN')),
+            'privat' => env('MONO_FOP3_MERCHANT_TOKEN'),
+        ],
         'mono_base_url' => env('MONO_API_BASE_URL', 'https://api.monobank.ua'),
         'mono_public_key' => env('MONO_WEBHOOK_PUBLIC_KEY'),
+        'mono_public_keys' => [
+            'mono' => env('MONO_FOP2_WEBHOOK_PUBLIC_KEY', env('MONO_WEBHOOK_PUBLIC_KEY')),
+            'privat' => env('MONO_FOP3_WEBHOOK_PUBLIC_KEY'),
+        ],
     ],
 
     'salesdrive' => [

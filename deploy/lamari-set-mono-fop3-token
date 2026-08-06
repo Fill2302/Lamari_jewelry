@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+app_dir=/var/www/lamari
+env_file=$app_dir/.env
+
+if [[ ! -f "$env_file" ]]; then
+    echo "Помилка: файл налаштувань сайту не знайдено." >&2
+    exit 1
+fi
+
+echo "Ця команда безпечно підключить merchant-токен Monobank для ФОП-3."
+read -r -s -p "Вставте X-Token ФОП-3 і натисніть Enter: " mono_token
+echo
+
+if [[ ! "$mono_token" =~ ^[A-Za-z0-9_-]{20,}$ ]]; then
+    echo "Токен не збережено: рядок має неправильний формат." >&2
+    unset mono_token
+    exit 1
+fi
+
+response_file=$(mktemp)
+new_env=
+cleanup() {
+    unset mono_token
+    rm -f "$response_file"
+    [[ -z "$new_env" ]] || rm -f "$new_env"
+}
+trap cleanup EXIT
+
+http_code=$(
+    printf 'silent\nshow-error\nheader = "X-Token: %s"\nurl = "https://api.monobank.ua/api/merchant/details"\noutput = "%s"\nwrite-out = "%%{http_code}"\n' \
+        "$mono_token" "$response_file" | curl --config -
+)
+
+if [[ "$http_code" != "200" ]]; then
+    echo "Токен не збережено: Monobank відхилив його (HTTP $http_code)." >&2
+    exit 1
+fi
+
+backup_dir=/home/sgadmin/lamari-deploy-backups/env
+mkdir -p "$backup_dir"
+cp -a "$env_file" "$backup_dir/.env.before-mono-fop3-$(date -u +%Y%m%d-%H%M%S)"
+
+new_env=$(mktemp "$app_dir/.env.mono-fop3.XXXXXX")
+chmod 640 "$new_env"
+sudo -n chown --reference="$env_file" "$new_env"
+
+token_written=false
+while IFS= read -r line || [[ -n "$line" ]]; do
+    case "$line" in
+        MONO_FOP3_MERCHANT_TOKEN=*)
+            printf 'MONO_FOP3_MERCHANT_TOKEN=%s\n' "$mono_token" >> "$new_env"
+            token_written=true
+            ;;
+        *) printf '%s\n' "$line" >> "$new_env" ;;
+    esac
+done < "$env_file"
+
+[[ "$token_written" == true ]] || printf 'MONO_FOP3_MERCHANT_TOKEN=%s\n' "$mono_token" >> "$new_env"
+
+mv "$new_env" "$env_file"
+new_env=
+unset mono_token
+
+cd "$app_dir"
+php artisan config:clear >/dev/null
+php artisan cache:forget payments.mono.public_key.privat >/dev/null 2>&1 || true
+
+echo "Готово: X-Token ФОП-3 перевірено Monobank і збережено без виведення в журнал."

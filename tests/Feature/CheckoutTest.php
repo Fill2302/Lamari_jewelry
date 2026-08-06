@@ -187,4 +187,37 @@ class CheckoutTest extends TestCase
 
         $this->assertSame('mono', $order->payment_destination);
     }
+
+    public function test_fop3_product_selects_the_fop3_merchant_account(): void
+    {
+        config(['services.payments.default' => 'fake']);
+        $fop3Entity = LegalEntity::create(['name' => 'ФОП-3']);
+        $fop3Merchant = MerchantAccount::create([
+            'legal_entity_id' => $fop3Entity->id,
+            'provider' => 'fake',
+            'code' => 'fake-fop-3',
+            'payment_destination' => 'privat',
+            'is_default' => true,
+        ]);
+        $variant = $this->variant();
+        $variant->product->update(['payment_destination' => 'privat']);
+        PromoCode::create([
+            'code' => 'FOP3TEST99',
+            'discount_type' => 'percent',
+            'discount_value' => 99,
+            'is_active' => true,
+        ]);
+
+        [$order] = $this->app->make(CheckoutService::class)->create(
+            ['customer_name' => 'Filip', 'email' => 'f@example.com', 'phone' => '1', 'shipping_address' => []],
+            [['variant' => $variant, 'quantity' => 1]],
+            'online',
+            'FOP3TEST99',
+        );
+
+        $this->assertSame('privat', $order->payment_destination);
+        $this->assertSame($fop3Merchant->id, $order->merchant_account_id);
+        $this->assertSame($fop3Entity->id, $order->legal_entity_id);
+        $this->assertSame(1890, $order->total_amount);
+    }
 }

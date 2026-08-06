@@ -79,6 +79,45 @@ class MonoPaymentTest extends TestCase
         });
     }
 
+    public function test_fop3_invoice_uses_its_own_mono_merchant_token(): void
+    {
+        config(['services.payments.mono_tokens.privat' => 'fop-3-token']);
+        Http::fake([
+            'api.monobank.ua/api/merchant/invoice/create' => Http::response([
+                'invoiceId' => 'p2_fop3_invoice',
+                'pageUrl' => 'https://pay.mbnk.biz/p2_fop3_invoice',
+            ]),
+        ]);
+        $payment = $this->payment();
+        $payment->order->update(['payment_destination' => 'privat']);
+        $payment->order->items()->create([
+            'sku' => 'SKU-FOP3',
+            'name' => 'Кольє — Тестове',
+            'receipt_name' => 'Кольє',
+            'quantity' => 1,
+            'unit_price_amount' => 145000,
+            'total_amount' => 145000,
+        ]);
+
+        (new MonoPaymentProvider)->createPayment($payment);
+
+        Http::assertSent(fn ($request): bool => $request->url() === 'https://api.monobank.ua/api/merchant/invoice/create'
+            && $request->header('X-Token')[0] === 'fop-3-token'
+        );
+    }
+
+    public function test_fop3_invoice_is_rejected_without_its_merchant_token(): void
+    {
+        config(['services.payments.mono_tokens.privat' => null]);
+        $payment = $this->payment();
+        $payment->order->update(['payment_destination' => 'privat']);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Mono merchant token for privat is not configured.');
+
+        (new MonoPaymentProvider)->createPayment($payment);
+    }
+
     public function test_checkout_uses_an_inertia_location_for_the_external_mono_page(): void
     {
         $entity = LegalEntity::create(['name' => 'Test FOP']);

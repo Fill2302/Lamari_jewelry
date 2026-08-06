@@ -58,7 +58,7 @@ class CheckoutService
             $paymentDestination = $destinations->contains('privat') && $destinations->contains('mono')
                 ? $mixedDestination
                 : ($destinations->contains('privat') ? 'privat' : ($destinations->contains('mono') ? 'mono' : 'unassigned'));
-            $merchant = $this->selector->select($amountDue);
+            $merchant = $this->selector->select($amountDue, $paymentDestination);
             $cashOnDelivery = $paymentMethod === 'cash_on_delivery';
             $number = (string) DB::table('order_number_sequences')->insertGetId(['created_at' => now()]);
             $order = Order::create([...$customer, 'number' => $number, 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'payment_method' => $paymentMethod, 'payment_destination' => $paymentDestination, 'status' => $cashOnDelivery ? 'confirmed' : 'pending_payment', 'payment_status' => $cashOnDelivery ? 'cash_on_delivery' : 'pending', 'promo_code_id' => $promo?->id, 'subtotal_amount' => $total, 'discount_amount' => $promoDiscount, 'total_amount' => $amountDue, 'currency' => 'UAH']);

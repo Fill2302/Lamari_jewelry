@@ -21,7 +21,8 @@ class MonoPaymentProvider implements PaymentProvider
     {
         $payment->loadMissing('order.items');
 
-        $response = $this->client()->post('/api/merchant/invoice/create', [
+        $destination = $this->merchantDestination($payment);
+        $response = $this->client($destination)->post('/api/merchant/invoice/create', [
             'amount' => $payment->amount,
             'ccy' => 980,
             'merchantPaymInfo' => [
@@ -75,8 +76,16 @@ class MonoPaymentProvider implements PaymentProvider
             return false;
         }
 
+        $invoiceId = (string) (json_decode($payload, true)['invoiceId'] ?? '');
+        $payment = $invoiceId !== ''
+            ? Payment::with('order')->where('provider_payment_id', $invoiceId)->first()
+            : null;
+        if (! $payment) {
+            return false;
+        }
+
         $decodedSignature = base64_decode($signature, true);
-        $decodedKey = base64_decode($this->publicKey(), true);
+        $decodedKey = base64_decode($this->publicKey($this->merchantDestination($payment)), true);
         if ($decodedSignature === false || $decodedKey === false) {
             return false;
         }
@@ -113,11 +122,23 @@ class MonoPaymentProvider implements PaymentProvider
         );
     }
 
-    private function client(): PendingRequest
+    private function merchantDestination(Payment $payment): string
     {
-        $token = (string) config('services.payments.mono_token');
+        $payment->loadMissing('order');
+
+        return in_array($payment->order->payment_destination, ['mono', 'privat'], true)
+            ? $payment->order->payment_destination
+            : 'mono';
+    }
+
+    private function client(string $destination = 'mono'): PendingRequest
+    {
+        $token = (string) config("services.payments.mono_tokens.{$destination}");
+        if ($destination === 'mono' && $token === '') {
+            $token = (string) config('services.payments.mono_token');
+        }
         if ($token === '') {
-            throw new RuntimeException('Mono merchant token is not configured.');
+            throw new RuntimeException("Mono merchant token for {$destination} is not configured.");
         }
 
         return Http::baseUrl(rtrim((string) config('services.payments.mono_base_url'), '/'))
@@ -129,15 +150,18 @@ class MonoPaymentProvider implements PaymentProvider
             ->retry(2, 250, throw: false);
     }
 
-    private function publicKey(): string
+    private function publicKey(string $destination): string
     {
-        $configured = trim((string) config('services.payments.mono_public_key'));
+        $configured = trim((string) config("services.payments.mono_public_keys.{$destination}"));
+        if ($configured === '') {
+            $configured = trim((string) config('services.payments.mono_public_key'));
+        }
         if ($configured !== '') {
             return $configured;
         }
 
-        return Cache::remember('payments.mono.public_key', now()->addDay(), function (): string {
-            $key = (string) ($this->client()->get('/api/merchant/pubkey')->throw()->json('key') ?? '');
+        return Cache::remember("payments.mono.public_key.{$destination}", now()->addDay(), function () use ($destination): string {
+            $key = (string) ($this->client($destination)->get('/api/merchant/pubkey')->throw()->json('key') ?? '');
             if ($key === '') {
                 throw new RuntimeException('Mono public key is unavailable.');
             }
