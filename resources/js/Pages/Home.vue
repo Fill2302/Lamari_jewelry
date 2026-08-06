@@ -6,7 +6,7 @@ import StoreLayout from '../Layouts/StoreLayout.vue';
 const props = defineProps<{ categories: any[], newProducts:any[], hitProducts:any[], homepage:any }>();
 
 const openFaq = ref<number | null>(null);
-const asset = (url:string) => url?.startsWith('http') ? url : `/storage/${url}`;
+const asset = (url:string) => url?.startsWith('http') || url?.startsWith('/') ? url : `/storage/${url}`;
 const pageAsset = (url:string) => !url ? '' : (url.startsWith('http') || url.startsWith('/')) ? url : `/storage/${url}`;
 const productImage = (product:any) => asset(product.media?.find((item:any) => item.type === 'image')?.url || product.image_url);
 const price = (product:any) => product.variants?.[0]?.effective_price_amount ?? product.variants?.[0]?.price_amount ?? 0;
@@ -23,6 +23,7 @@ const fallbackCategoryImages:Record<string,string> = {
 const categoryCards = computed(() => props.categories.map(item => ({
   ...item,
   image: item.image_url ? pageAsset(item.image_url) : fallbackCategoryImages[item.slug],
+  products: item.member_products || [],
 })).filter(item => item.image));
 const faqs = computed(() => (props.homepage?.faq_items || []).map((item:any) => ({ q:item.question, a:item.answer })));
 </script>
@@ -84,10 +85,21 @@ const faqs = computed(() => (props.homepage?.faq_items || []).map((item:any) => 
     </section>
 
     <section class="home-categories">
-      <Link v-for="item in categoryCards" :key="item.slug" :href="`/categories/${item.slug}`" class="home-category-card">
-        <img :src="item.image" :alt="item.name" loading="lazy">
-        <strong>{{ item.name }}</strong><span aria-hidden="true">⟶</span>
-      </Link>
+      <article v-for="item in categoryCards" :key="item.slug" class="home-category-section" :class="{ 'has-products': item.products.length }">
+        <Link :href="`/categories/${item.slug}`" class="home-category-card">
+          <img :src="item.image" :alt="item.name" loading="lazy">
+          <strong>{{ item.name }}</strong><span aria-hidden="true">⟶</span>
+        </Link>
+        <div v-if="item.products.length" class="home-category-products">
+          <Link v-for="product in item.products.slice(0, 4)" :key="product.id" :href="`/products/${product.slug}`" class="home-category-product">
+            <img :src="productImage(product)" :alt="product.name" loading="lazy">
+            <div>
+              <h3>{{ product.name }}</h3>
+              <p><del v-if="originalPrice(product)">{{ (originalPrice(product)/100).toLocaleString('uk-UA') }} ₴</del>{{ (price(product)/100).toLocaleString('uk-UA') }} ₴</p>
+            </div>
+          </Link>
+        </div>
+      </article>
     </section>
 
     <section id="faq" class="home-faq">

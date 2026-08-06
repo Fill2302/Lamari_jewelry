@@ -113,14 +113,23 @@ body {
     color: #27211e;
 }
 .home-categories {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.8rem;
     padding: 1rem 4vw 5.5rem;
 }
+.home-category-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: calc(100vh - 4rem);
+    max-height: 960px;
+    margin-bottom: 0.8rem;
+    overflow: hidden;
+}
+.home-category-section.has-products {
+    grid-template-columns: minmax(0, 56%) minmax(0, 44%);
+}
 .home-category-card {
     position: relative;
-    min-height: min(64vw, 660px);
+    min-height: 0;
     overflow: hidden;
     color: #fff;
 }
@@ -154,6 +163,57 @@ body {
 .home-category-card span {
     right: 2rem;
     font-size: 2rem;
+}
+.home-category-products {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 2px;
+    padding-left: 0.8rem;
+}
+.home-category-product {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: #f4f0ec;
+    color: #fff;
+}
+.home-category-product::after {
+    content: '';
+    position: absolute;
+    inset: 45% 0 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.56));
+}
+.home-category-product > img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transition: transform 300ms ease;
+}
+.home-category-product:hover > img {
+    transform: scale(1.025);
+}
+.home-category-product > div {
+    position: absolute;
+    z-index: 1;
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+}
+.home-category-product h3 {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 400 0.78rem/1.35 Inter, sans-serif;
+}
+.home-category-product p {
+    display: flex;
+    gap: 0.6rem;
+    margin: 0.35rem 0 0;
+    font-size: 0.82rem;
 }
 .home-faq {
     max-width: 1040px;
@@ -269,12 +329,21 @@ body {
         margin-right: -1rem;
     }
     .home-categories {
-        grid-template-columns: 1fr;
         gap: 0.65rem;
         padding: 0 0 4rem;
     }
+    .home-category-section {
+        display: block;
+        min-height: 0;
+        max-height: none;
+        margin-bottom: 0.65rem;
+    }
     .home-category-card {
+        display: block;
         min-height: 100vw;
+    }
+    .home-category-products {
+        display: none;
     }
     .home-category-card strong {
         left: 1.5rem;

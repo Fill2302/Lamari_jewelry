@@ -9,6 +9,32 @@ use Tests\TestCase;
 
 class StorefrontTest extends TestCase
 {
+    public function test_homepage_categories_include_up_to_four_active_products(): void
+    {
+        $category = Category::create([
+            'name' => 'Кольє',
+            'slug' => 'homepage-necklaces',
+            'is_active' => true,
+            'show_on_home' => true,
+        ]);
+
+        $products = collect(range(1, 5))->map(fn (int $position) => Product::create([
+            'category_id' => $category->id,
+            'name' => "Кольє {$position}",
+            'slug' => "homepage-necklace-{$position}",
+            'description' => '',
+            'is_active' => true,
+            'category_position' => $position,
+        ]));
+        $products->last()->update(['is_active' => false]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('categories.0.member_products', 4)
+                ->where('categories.0.member_products.0.id', $products->first()->id));
+    }
+
     use RefreshDatabase;
 
     public function test_seeded_storefront_and_seo_endpoints_work(): void

@@ -46,7 +46,13 @@ class StoreController extends Controller
             'categories' => Category::whereNull('parent_id')
                 ->where('is_active', true)
                 ->where('show_on_home', true)
-                ->with('children')
+                ->with([
+                    'children',
+                    'memberProducts' => fn ($query) => $query
+                        ->where('is_active', true)
+                        ->with(['variants', 'media'])
+                        ->limit(4),
+                ])
                 ->orderBy('position')
                 ->orderBy('id')
                 ->get(),
