@@ -6,6 +6,7 @@ use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
 use App\Models\Category;
+use App\Services\MediaOptimizer;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -52,7 +53,7 @@ class CategoryResource extends Resource
             TextInput::make('name')->label('Назва')->required(),
             TextInput::make('slug')->label('Адреса (slug)')->required()->unique(ignoreRecord: true),
             Textarea::make('description')->label('Опис')->columnSpanFull(),
-            FileUpload::make('image_url')->label('Зображення')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])->maxSize(8192)->directory('categories')->visibility('public'),
+            FileUpload::make('image_url')->label('Зображення')->image()->acceptedFileTypes(MediaOptimizer::IMAGE_ACCEPTED_MIME_TYPES)->maxSize(8192)->directory('categories')->visibility('public'),
             TextInput::make('position')->label('Порядок')->numeric()->default(0)->helperText('Також можна перетягувати рядки у списку.'),
             TextInput::make('seo_title')->label('SEO-заголовок'),
             Textarea::make('seo_description')->label('SEO-опис'),

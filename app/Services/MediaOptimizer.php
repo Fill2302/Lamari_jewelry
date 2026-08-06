@@ -10,6 +10,14 @@ use Symfony\Component\Process\Process;
 
 class MediaOptimizer
 {
+    public const IMAGE_ACCEPTED_MIME_TYPES = [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/heic',
+        'image/heif',
+    ];
+
     public const IMAGE_MAX_KILOBYTES = 8192;
 
     public const VIDEO_MAX_KILOBYTES = 51200;
@@ -48,10 +56,19 @@ class MediaOptimizer
     {
         $this->assertSize($file, self::IMAGE_MAX_KILOBYTES, 'Фото перевищує дозволені 8 МБ.');
 
-        $contents = file_get_contents($file->getRealPath());
+        $decodedFiles = [];
+        $source = $file->getRealPath();
+
+        if ($this->isHeif($file)) {
+            [$source, $decodedFiles] = $this->decodeHeif($file);
+        }
+
+        $contents = file_get_contents($source);
         $image = $contents === false ? false : @imagecreatefromstring($contents);
         if ($image === false) {
-            throw new RuntimeException('Не вдалося прочитати фотографію. Завантажте JPG, PNG або WebP.');
+            $this->deleteFiles($decodedFiles);
+
+            throw new RuntimeException('Не вдалося прочитати фотографію. Завантажте JPG, PNG, WebP, HEIC або HEIF.');
         }
 
         $output = $this->temporaryPath('webp');
@@ -86,6 +103,74 @@ class MediaOptimizer
         } finally {
             imagedestroy($image);
             @unlink($output);
+            $this->deleteFiles($decodedFiles);
+        }
+    }
+
+    /**
+     * @return array{0: string, 1: list<string>}
+     */
+    private function decodeHeif(UploadedFile $file): array
+    {
+        $requestedOutput = $this->temporaryPath('png');
+        $process = new Process([
+            '/usr/bin/heif-convert',
+            '--quiet',
+            $file->getRealPath(),
+            $requestedOutput,
+        ]);
+        $process->setTimeout(60);
+
+        try {
+            $process->mustRun();
+        } catch (\Throwable $exception) {
+            $this->deleteFiles($this->heifOutputFiles($requestedOutput));
+
+            throw new RuntimeException(
+                'Не вдалося прочитати HEIC/HEIF. Перевірте файл і спробуйте ще раз.',
+                previous: $exception,
+            );
+        }
+
+        $outputs = $this->heifOutputFiles($requestedOutput);
+        if ($outputs === []) {
+            throw new RuntimeException('Не вдалося створити проміжне зображення з HEIC/HEIF.');
+        }
+
+        return [$outputs[0], $outputs];
+    }
+
+    /** @return list<string> */
+    private function heifOutputFiles(string $requestedOutput): array
+    {
+        $outputs = is_file($requestedOutput) && filesize($requestedOutput) > 0
+            ? [$requestedOutput]
+            : [];
+
+        $extension = pathinfo($requestedOutput, PATHINFO_EXTENSION);
+        $base = substr($requestedOutput, 0, -strlen($extension) - 1);
+        $additional = glob($base.'-*.'.$extension) ?: [];
+        natsort($additional);
+
+        foreach ($additional as $path) {
+            if (is_file($path) && filesize($path) > 0) {
+                $outputs[] = $path;
+            }
+        }
+
+        return array_values(array_unique($outputs));
+    }
+
+    private function isHeif(UploadedFile $file): bool
+    {
+        return in_array((string) $file->getMimeType(), ['image/heic', 'image/heif'], true);
+    }
+
+    /** @param list<string> $paths */
+    private function deleteFiles(array $paths): void
+    {
+        foreach ($paths as $path) {
+            @unlink($path);
         }
     }
 
