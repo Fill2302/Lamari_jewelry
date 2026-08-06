@@ -1269,12 +1269,6 @@ nav {
     display: block;
     object-fit: cover;
 }
-.favorites-head {
-    text-align: center;
-}
-.favorites-head p {
-    margin: 0.5rem 0 0;
-}
 .favorites-empty {
     display: grid;
     justify-items: center;

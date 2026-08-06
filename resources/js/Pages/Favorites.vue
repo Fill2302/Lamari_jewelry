@@ -36,7 +36,6 @@ onUnmounted(() => {
 <template>
   <Head><title>Вподобане</title></Head>
   <StoreLayout>
-    <section class="page-head favorites-head"><h1>Вподобане</h1><p>{{ favoriteProducts.length }} товарів</p></section>
     <section v-if="favoriteProducts.length" class="product-catalog favorites-catalog">
       <article v-for="product in favoriteProducts" :key="product.id" class="catalog-card">
         <Link :href="`/products/${product.slug}`" class="catalog-card-link">
