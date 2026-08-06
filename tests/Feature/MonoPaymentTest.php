@@ -122,6 +122,7 @@ class MonoPaymentTest extends TestCase
 
     public function test_signed_success_webhook_confirms_order_and_is_idempotent(): void
     {
+        Http::preventStrayRequests();
         $this->withMiddleware(PreventRequestForgery::class);
         config([
             'app.staging_protected' => true,
