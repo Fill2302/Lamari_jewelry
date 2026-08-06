@@ -28,13 +28,13 @@ class PaymentRoutingSettingResource extends Resource
     {
         return $schema->components([
             Section::make('Змішаний кошик')
-                ->description('Застосовується, коли в одному замовленні одночасно є товари monobank і ПриватБанку.')
+                ->description('Застосовується, коли в одному замовленні одночасно є товари ФОП-2 і ФОП-3.')
                 ->schema([
                     Radio::make('mixed_cart_destination')
                         ->label('Куди направляти всю оплату')
                         ->options([
-                            'mono' => 'monobank',
-                            'privat' => 'ПриватБанк',
+                            'mono' => 'ФОП-2',
+                            'privat' => 'ФОП-3',
                         ])
                         ->default('privat')
                         ->inline()
@@ -47,7 +47,7 @@ class PaymentRoutingSettingResource extends Resource
     {
         return $table->columns([
             TextColumn::make('mixed_cart_destination')->label('Банк для змішаного кошика')
-                ->formatStateUsing(fn (string $state): string => $state === 'mono' ? 'monobank' : 'ПриватБанк'),
+                ->formatStateUsing(fn (string $state): string => $state === 'mono' ? 'ФОП-2' : 'ФОП-3'),
         ])->recordActions([EditAction::make()]);
     }
 

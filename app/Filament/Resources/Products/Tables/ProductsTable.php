@@ -44,8 +44,8 @@ class ProductsTable
                     ->label('Банк оплати')
                     ->options([
                         'unassigned' => 'Не визначено',
-                        'mono' => 'monobank',
-                        'privat' => 'ПриватБанк',
+                        'mono' => 'ФОП-2',
+                        'privat' => 'ФОП-3',
                     ]),
                 TextInputColumn::make('catalog_position')
                     ->label('Місце в каталозі')
@@ -92,8 +92,8 @@ class ProductsTable
                     ->label('Банк оплати')
                     ->options([
                         'unassigned' => 'Не визначено',
-                        'mono' => 'monobank',
-                        'privat' => 'ПриватБанк',
+                        'mono' => 'ФОП-2',
+                        'privat' => 'ФОП-3',
                     ]),
             ])
             ->recordActions([
@@ -108,8 +108,8 @@ class ProductsTable
                                 ->label('Банк для онлайн-оплати')
                                 ->options([
                                     'unassigned' => 'Ще не визначено',
-                                    'mono' => 'monobank',
-                                    'privat' => 'ПриватБанк',
+                                    'mono' => 'ФОП-2',
+                                    'privat' => 'ФОП-3',
                                 ])
                                 ->required(),
                         ])

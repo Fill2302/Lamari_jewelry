@@ -24,8 +24,8 @@ class OrdersTable
                     ->label('Банк оплати')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'mono' => 'monobank',
-                        'privat' => 'ПриватБанк',
+                        'mono' => 'ФОП-2',
+                        'privat' => 'ФОП-3',
                         default => 'Не визначено',
                     }),
                 TextColumn::make('legal_entity_id')

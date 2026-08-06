@@ -29,8 +29,8 @@ class ProductForm
                     ->label('Банк для онлайн-оплати')
                     ->options([
                         'unassigned' => 'Ще не визначено',
-                        'mono' => 'monobank',
-                        'privat' => 'ПриватБанк',
+                        'mono' => 'ФОП-2',
+                        'privat' => 'ФОП-3',
                     ])
                     ->default('unassigned')
                     ->helperText('Визначає, на який платіжний акаунт буде направлене онлайн-замовлення з цим товаром.')
