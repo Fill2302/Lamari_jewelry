@@ -35,6 +35,22 @@ class MediaOptimizerTest extends TestCase
         app(MediaOptimizer::class)->optimizeAndStore($upload, 'public', 'products');
     }
 
+    public function test_it_converts_a_real_heic_image_to_webp(): void
+    {
+        Storage::fake('public');
+        $fixture = base_path('tests/Fixtures/example.heic');
+        $upload = new UploadedFile($fixture, 'iphone-photo.heic', 'image/heif', null, true);
+
+        $path = app(MediaOptimizer::class)->optimizeAndStore($upload, 'public', 'products');
+
+        Storage::disk('public')->assertExists($path);
+        $this->assertStringEndsWith('.webp', $path);
+        $this->assertSame('image/webp', mime_content_type(Storage::disk('public')->path($path)));
+        [$width, $height] = getimagesize(Storage::disk('public')->path($path));
+        $this->assertSame([1280, 854], [$width, $height]);
+        $this->assertLessThan(filesize($fixture), Storage::disk('public')->size($path));
+    }
+
     public function test_it_converts_video_to_web_optimized_mp4(): void
     {
         Storage::fake('public');

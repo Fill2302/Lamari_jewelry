@@ -6,6 +6,7 @@ use App\Filament\Resources\SiteSettings\Pages\CreateSiteSetting;
 use App\Filament\Resources\SiteSettings\Pages\EditSiteSetting;
 use App\Filament\Resources\SiteSettings\Pages\ListSiteSettings;
 use App\Models\SiteSetting;
+use App\Services\MediaOptimizer;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -49,7 +50,7 @@ class SiteSettingResource extends Resource
             TextInput::make('key')->label('Системний ключ')->required()->unique(ignoreRecord: true),
             Select::make('type')->label('Тип')->options(['text' => 'Короткий текст', 'textarea' => 'Довгий текст', 'image' => 'Зображення', 'boolean' => 'Так/ні'])->default('text')->required()->live(),
             Textarea::make('value')->label('Значення')->visible(fn ($get) => $get('type') !== 'image')->columnSpanFull(),
-            FileUpload::make('value')->label('Зображення')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])->maxSize(8192)->directory('settings')->visibility('public')->visible(fn ($get) => $get('type') === 'image')->columnSpanFull(),
+            FileUpload::make('value')->label('Зображення')->image()->acceptedFileTypes(MediaOptimizer::IMAGE_ACCEPTED_MIME_TYPES)->maxSize(8192)->directory('settings')->visibility('public')->visible(fn ($get) => $get('type') === 'image')->columnSpanFull(),
             Toggle::make('is_public')->label('Доступне на сайті')->default(true),
         ]);
     }

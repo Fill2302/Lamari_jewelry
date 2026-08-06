@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use App\Services\MediaOptimizer;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
@@ -128,7 +129,7 @@ class ProductForm
                             ->required(),
                         FileUpload::make('url')
                             ->label('Фото або відео')
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime'])
+                            ->acceptedFileTypes([...MediaOptimizer::IMAGE_ACCEPTED_MIME_TYPES, 'video/mp4', 'video/webm', 'video/quicktime'])
                             ->maxSize(51200)
                             ->disk('public')
                             ->directory('products')
@@ -140,7 +141,7 @@ class ProductForm
                         FileUpload::make('poster_url')
                             ->label('Обкладинка відео')
                             ->image()
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->acceptedFileTypes(MediaOptimizer::IMAGE_ACCEPTED_MIME_TYPES)
                             ->maxSize(8192)
                             ->disk('public')
                             ->directory('products/posters')

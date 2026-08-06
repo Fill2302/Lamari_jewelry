@@ -2,7 +2,15 @@
 
 ## Локальний запуск
 
-Вимоги: PHP 8.3+, Composer 2, Node.js 22+, PostgreSQL 16+ і Redis 7+.
+Вимоги: PHP 8.3+, Composer 2, Node.js 22+, PostgreSQL 16+, Redis 7+, FFmpeg і
+`heif-convert` з HEVC-декодером. На Ubuntu 24.04 останні два HEIF-пакети:
+
+```bash
+sudo apt-get install libheif-examples libheif-plugin-libde265
+```
+
+Без `heif-convert` адмінка покаже помилку під час обробки HEIC/HEIF; JPG, PNG і
+WebP продовжать оброблятися через GD.
 
 ```bash
 cp .env.example .env
