@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import StoreLayout from '../Layouts/StoreLayout.vue';
 
 const props = defineProps<{ categories: any[], newProducts:any[], hitProducts:any[], homepage:any }>();
 
 const openFaq = ref<number | null>(null);
+const addingProduct = ref<number | null>(null);
 const asset = (url:string) => url?.startsWith('http') || url?.startsWith('/') ? url : `/storage/${url}`;
 const pageAsset = (url:string) => !url ? '' : (url.startsWith('http') || url.startsWith('/')) ? url : `/storage/${url}`;
 const productImage = (product:any) => asset(product.media?.find((item:any) => item.type === 'image')?.url || product.image_url);
@@ -13,6 +14,18 @@ const price = (product:any) => product.variants?.[0]?.effective_price_amount ?? 
 const originalPrice = (product:any) => product.variants?.[0]?.discount_percentage
   ? product.variants[0].original_price_amount
   : product.compare_at_price_amount;
+const availableVariant = (product:any) => product.variants?.find((variant:any) =>
+  variant.is_active && variant.stock_on_hand > variant.stock_reserved
+);
+const addToCart = (product:any) => {
+  const variant = availableVariant(product);
+  if (!variant || addingProduct.value) return;
+  addingProduct.value = product.id;
+  router.post(`/cart/${variant.id}`, { quantity: 1 }, {
+    preserveScroll: true,
+    onFinish: () => addingProduct.value = null,
+  });
+};
 const fallbackCategoryImages:Record<string,string> = {
   necklaces:'/images/home/categories/necklaces.jpg', chokers:'/images/home/categories/chokers.jpg',
   earrings:'/images/home/categories/earrings.jpg', chains:'/images/home/categories/chains.jpg',
@@ -91,13 +104,16 @@ const faqs = computed(() => (props.homepage?.faq_items || []).map((item:any) => 
           <strong>{{ item.name }}</strong><span aria-hidden="true">⟶</span>
         </Link>
         <div v-if="item.products.length" class="home-category-products">
-          <Link v-for="product in item.products.slice(0, 4)" :key="product.id" :href="`/products/${product.slug}`" class="home-category-product">
-            <img :src="productImage(product)" :alt="product.name" loading="lazy">
-            <div>
+          <article v-for="product in item.products.slice(0, 4)" :key="product.id" class="home-category-product">
+            <Link :href="`/products/${product.slug}`" class="home-category-product-link">
+              <div class="home-category-product-image"><img :src="productImage(product)" :alt="product.name" loading="lazy"></div>
+              <div class="home-category-product-info">
               <h3>{{ product.name }}</h3>
               <p><del v-if="originalPrice(product)">{{ (originalPrice(product)/100).toLocaleString('uk-UA') }} ₴</del>{{ (price(product)/100).toLocaleString('uk-UA') }} ₴</p>
-            </div>
-          </Link>
+              </div>
+            </Link>
+            <button type="button" :disabled="!availableVariant(product) || addingProduct === product.id" @click="addToCart(product)">{{ availableVariant(product) ? (addingProduct === product.id ? 'Додаємо…' : 'Додати в кошик') : 'Немає в наявності' }}</button>
+          </article>
         </div>
       </article>
     </section>
