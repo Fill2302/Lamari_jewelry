@@ -13,6 +13,7 @@ class AdminPagesTest extends TestCase
     public function test_admin_management_pages_render(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('super_admin');
 
         foreach ([
             '/admin',
@@ -32,6 +33,8 @@ class AdminPagesTest extends TestCase
             '/admin/discounts/create',
             '/admin/users',
             '/admin/users/create',
+            '/admin/shield/roles',
+            '/admin/activity-logs',
         ] as $path) {
             $this->actingAs($user)->get($path)->assertOk();
         }

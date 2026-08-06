@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Discount;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\User;
 use App\Services\CartService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -15,6 +16,15 @@ use Tests\TestCase;
 class DiscountTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $user = User::factory()->create();
+        $user->assignRole('super_admin');
+        $this->actingAs($user);
+    }
 
     public function test_category_discount_applies_to_products_in_subcategories(): void
     {
