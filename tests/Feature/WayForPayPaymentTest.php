@@ -38,6 +38,8 @@ class WayForPayPaymentTest extends TestCase
         $this->assertSame('test.lamari.jewelry', $fields['merchantDomainName']);
         $this->assertSame('150.00', $fields['amount']);
         $this->assertSame(['Передплата за замовлення №WFP-1'], $fields['productName']);
+        $this->assertSame('https://test.lamari.jewelry/payments/wayforpay/return/'.$payment->id, $fields['returnUrl']);
+        $this->assertSame('https://test.lamari.jewelry/payments/wayforpay/webhook', $fields['serviceUrl']);
         $this->assertSame($payment->idempotency_key, $payment->fresh()->provider_payment_id);
         $this->assertStringContainsString('/payments/wayforpay/', $result['checkout_url']);
 
@@ -46,6 +48,19 @@ class WayForPayPaymentTest extends TestCase
             $fields['orderDate'], '150.00', 'UAH', 'Передплата за замовлення №WFP-1', 1, '150.00',
         ]);
         $this->assertSame(hash_hmac('md5', $base, 'secret-fop-2'), $fields['merchantSignature']);
+    }
+
+    public function test_uses_each_environment_domain_for_return_and_callback_urls(): void
+    {
+        config(['services.payments.wayforpay_domain' => 'lamari.jewelry']);
+        $payment = $this->payment('fop-2');
+
+        app(WayForPayPaymentProvider::class)->createPayment($payment);
+        $fields = $payment->fresh()->payload['checkout'];
+
+        $this->assertSame('lamari.jewelry', $fields['merchantDomainName']);
+        $this->assertSame('https://lamari.jewelry/payments/wayforpay/return/'.$payment->id, $fields['returnUrl']);
+        $this->assertSame('https://lamari.jewelry/payments/wayforpay/webhook', $fields['serviceUrl']);
     }
 
     public function test_approved_callback_marks_only_deposit_paid_and_sets_cod_balance(): void

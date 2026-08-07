@@ -23,10 +23,12 @@ class WayForPayPaymentProvider implements PaymentProvider
         $productName = ['Передплата за замовлення №'.$payment->order->number];
         $productCount = [1];
         $productPrice = [$amount];
+        $merchantDomain = (string) config('services.payments.wayforpay_domain');
+        $siteUrl = 'https://'.trim($merchantDomain, '/');
         $fields = [
             'merchantAccount' => $credentials['account'],
             'merchantAuthType' => 'SimpleSignature',
-            'merchantDomainName' => (string) config('services.payments.wayforpay_domain'),
+            'merchantDomainName' => $merchantDomain,
             'orderReference' => $payment->idempotency_key,
             'orderDate' => $orderDate,
             'amount' => $amount,
@@ -39,8 +41,8 @@ class WayForPayPaymentProvider implements PaymentProvider
             'clientEmail' => $payment->order->email,
             'clientPhone' => $payment->order->phone,
             'language' => 'UA',
-            'returnUrl' => route('payments.wayforpay.return', $payment),
-            'serviceUrl' => route('payments.wayforpay.webhook'),
+            'returnUrl' => $siteUrl.route('payments.wayforpay.return', $payment, false),
+            'serviceUrl' => $siteUrl.route('payments.wayforpay.webhook', [], false),
         ];
         $signatureValues = [
             $fields['merchantAccount'], $fields['merchantDomainName'], $fields['orderReference'],
