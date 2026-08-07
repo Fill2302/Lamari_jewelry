@@ -1659,16 +1659,29 @@ nav {
     white-space: nowrap !important;
     border: 0 !important;
 }
+.product-size-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0 0 0.45rem;
+}
+.product-size-label {
+    margin: 0;
+    color: #2c2724;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+.product-size-options {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
 .product-size-guide {
-    margin: 0 0 0.6rem;
-    color: #514943;
-}
-.product-size-guide p {
-    margin: 0 0 0.35rem;
-    font-size: 0.78rem;
-    font-weight: 400;
-}
-.product-size-guide button {
+    flex: 0 0 auto;
+    margin-left: auto;
+    text-align: right;
     padding: 0;
     border: 0;
     border-bottom: 1px solid currentColor;

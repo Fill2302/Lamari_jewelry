@@ -226,7 +226,7 @@ const sizeGuideKind = computed(() => {
 const showSizeGuide = computed(() => Boolean(p.product.size_guide_enabled && sizeGuideKind.value));
 const sizeGuideLabel = computed(() => {
   const label = p.product.size_guide_label?.trim() || '';
-  return /^Виберіть розмір:?$/iu.test(label) ? '' : label;
+  return label || 'Виберіть розмір';
 });
 const sizeGuideContent = computed(() => ({
   necklace: {
@@ -320,12 +320,14 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
             <button type="button" aria-label="Умови Оплати частинами ПриватБанк" @click="installmentInfoOpen = 'privat'"><img :src="privatInstallmentsIcon" alt="ПриватБанк — Оплата частинами"></button>
           </div>
         </div>
-        <div v-if="showSizeGuide" class="product-size-guide">
-          <p v-if="sizeGuideLabel">{{ sizeGuideLabel }}</p>
-          <button type="button" @click="sizeGuideOpen = true">Як визначити розмір</button>
+        <div v-if="showSizeGuide" class="product-size-heading">
+          <p class="product-size-label">{{ sizeGuideLabel }}</p>
+          <button type="button" class="product-size-guide" @click="sizeGuideOpen = true">Як визначити розмір</button>
         </div>
         <span v-if="showVariantSelector" class="visually-hidden">Оберіть розмір</span>
-        <div v-if="showVariantSelector" class="variant-pills" :class="{ 'variant-pills--round': ['necklace', 'ring'].includes(sizeGuideKind) }"><button v-for="v in product.variants" :key="v.id" :class="{ active: selected === v.id }" @click="selected = v.id">{{ v.name }}</button></div>
+        <div v-if="showVariantSelector" class="product-size-options">
+          <div class="variant-pills" :class="{ 'variant-pills--round': ['necklace', 'ring'].includes(sizeGuideKind) }"><button v-for="v in product.variants" :key="v.id" :class="{ active: selected === v.id }" @click="selected = v.id">{{ v.name }}</button></div>
+        </div>
         <button ref="buyButton" class="button buy" @click="add" :disabled="form.processing || !selected">Додати в кошик</button>
         <div class="product-benefits"><span>Безкоштовне брендоване пакування</span><span>Відправлення 1–2 робочі дні</span></div>
         <section v-if="recommendedProducts.length" class="complete-look" aria-labelledby="complete-look-title">
