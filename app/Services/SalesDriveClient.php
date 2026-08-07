@@ -27,9 +27,9 @@ class SalesDriveClient
         }
     }
 
-    public function addPayment(array $data): int
+    public function addPayment(array $data, ?string $key = null): int
     {
-        $response = $this->payments()->post('/api/payment/', $data)->throw()->json();
+        $response = $this->payments($key)->post('/api/payment/', $data)->throw()->json();
         $id = (int) data_get($response, 'data.paymentId', 0);
         if (! ($response['success'] ?? false) || $id < 1) {
             throw new RuntimeException('SalesDrive did not return a created payment ID.');
@@ -53,9 +53,9 @@ class SalesDriveClient
         return $this->client((string) config('services.salesdrive.orders_key'));
     }
 
-    private function payments(): PendingRequest
+    private function payments(?string $key = null): PendingRequest
     {
-        return $this->client((string) config('services.salesdrive.payments_key'));
+        return $this->client($key ?? (string) config('services.salesdrive.payments_key'));
     }
 
     private function client(string $key): PendingRequest

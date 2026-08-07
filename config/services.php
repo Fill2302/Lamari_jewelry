@@ -39,6 +39,17 @@ return [
         'source' => env('SALESDRIVE_SOURCE', 'test.lamari.jewelry'),
         'orders_key' => env('SALESDRIVE_ORDERS_API_KEY'),
         'payments_key' => env('SALESDRIVE_PAYMENTS_API_KEY'),
+        'payment_accounts' => (static function (): array {
+            $encoded = (string) env('SALESDRIVE_PAYMENT_ACCOUNTS_B64', '');
+            if ($encoded === '') {
+                return [];
+            }
+
+            $decoded = base64_decode($encoded, true);
+            $accounts = $decoded === false ? null : json_decode($decoded, true);
+
+            return is_array($accounts) ? $accounts : [];
+        })(),
         'pending_status' => env('SALESDRIVE_PENDING_STATUS', 'Оплата'),
         'paid_status' => env('SALESDRIVE_PAID_STATUS', 'Підтверджено'),
         'deposit_status' => env('SALESDRIVE_DEPOSIT_STATUS', 'Підтверджено'),

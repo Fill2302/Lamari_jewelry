@@ -81,28 +81,53 @@ class SalesDriveSyncService
         }
 
         $order = $payment->order;
+        $order->loadMissing('merchantAccount');
         $this->syncPending($order);
         $this->client->updateOrder($order->salesdrive_order_id, [
             'statusId' => $this->statusId((string) config($order->payment_method === 'wayforpay_deposit' ? 'services.salesdrive.deposit_status' : 'services.salesdrive.paid_status')),
             'paymentDate' => now()->toDateTimeString(),
         ]);
-        if ((int) config('services.salesdrive.organization_id') < 1 || blank(config('services.salesdrive.account_number'))) {
-            throw new RuntimeException('SalesDrive organization and account are not configured.');
+        $paymentAccount = $this->paymentAccount($order->merchantAccount->code);
+        if ($paymentAccount['organization_id'] < 1 || blank($paymentAccount['account_number']) || blank($paymentAccount['payments_key'])) {
+            throw new RuntimeException("SalesDrive payment account is not configured for merchant {$order->merchantAccount->code}.");
         }
         $paymentId = $this->client->addPayment([
-            'organizationId' => (int) config('services.salesdrive.organization_id'),
+            'organizationId' => $paymentAccount['organization_id'],
             'datetime' => now()->toIso8601String(),
             'timezone' => config('app.timezone'),
-            'accountNumber' => (string) config('services.salesdrive.account_number'),
+            'accountNumber' => $paymentAccount['account_number'],
             'sum' => $payment->amount / 100,
             'description' => ($payment->provider === 'wayforpay' ? 'Передплата WayForPay за ' : 'Передоплата Mono за ').$order->number,
             'uniqueId' => 'lamari-'.$payment->provider.'-'.$payment->idempotency_key,
             'orderId' => $order->salesdrive_order_id,
             'orderExternalId' => $order->number,
             'autoAttachToOrderType' => 'order_id',
-        ]);
+        ], $paymentAccount['payments_key']);
         $payment->update(['salesdrive_payment_id' => $paymentId]);
         $order->update(['salesdrive_paid_at' => now(), 'salesdrive_sync_error' => null]);
+    }
+
+    private function paymentAccount(string $merchantCode): array
+    {
+        $accounts = config('services.salesdrive.payment_accounts', []);
+        $account = data_get($accounts, $merchantCode);
+        if (is_array($account)) {
+            return [
+                'organization_id' => (int) ($account['organization_id'] ?? 0),
+                'account_number' => (string) ($account['account_number'] ?? ''),
+                'payments_key' => (string) ($account['payments_key'] ?? ''),
+            ];
+        }
+
+        if (is_array($accounts) && $accounts !== []) {
+            return ['organization_id' => 0, 'account_number' => '', 'payments_key' => ''];
+        }
+
+        return [
+            'organization_id' => (int) config('services.salesdrive.organization_id'),
+            'account_number' => (string) config('services.salesdrive.account_number'),
+            'payments_key' => (string) config('services.salesdrive.payments_key'),
+        ];
     }
 
     private function statusId(string $name): int
