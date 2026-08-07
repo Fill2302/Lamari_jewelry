@@ -17,7 +17,6 @@ class WayForPayPaymentController extends Controller
         abort_unless($payment->provider === 'wayforpay' && $payment->status === 'pending', 404);
 
         return view('payments.wayforpay', [
-            'action' => (string) config('services.payments.wayforpay_url'),
             'fields' => data_get($payment->payload, 'checkout', []),
         ]);
     }

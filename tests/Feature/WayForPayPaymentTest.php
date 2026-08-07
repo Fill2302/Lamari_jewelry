@@ -63,6 +63,20 @@ class WayForPayPaymentTest extends TestCase
         $this->assertSame('https://lamari.jewelry/payments/wayforpay/webhook', $fields['serviceUrl']);
     }
 
+    public function test_checkout_uses_straight_widget_and_redirects_to_the_environment_return_url(): void
+    {
+        $payment = $this->payment('fop-2');
+        app(WayForPayPaymentProvider::class)->createPayment($payment);
+
+        $response = $this->get(route('payments.wayforpay.checkout', $payment));
+
+        $response->assertOk();
+        $response->assertSee('https://secure.wayforpay.com/server/pay-widget.js', false);
+        $response->assertSee('paymentFields.straightWidget = true', false);
+        $response->assertSee('window.location.assign(returnUrl)', false);
+        $response->assertDontSee('document.getElementById(\'wayforpay\').submit()', false);
+    }
+
     public function test_approved_callback_marks_only_deposit_paid_and_sets_cod_balance(): void
     {
         $payment = $this->payment('fop-3');
