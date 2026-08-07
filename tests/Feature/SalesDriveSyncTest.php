@@ -97,8 +97,8 @@ class SalesDriveSyncTest extends TestCase
     public function test_routes_each_merchant_to_its_own_salesdrive_account_and_key(): void
     {
         config(['services.salesdrive.payment_accounts' => [
-            'salesdrive-fop2-test' => ['organization_id' => 2, 'account_number' => 'fop-popova', 'payments_key' => 'popova-secret'],
-            'salesdrive-fop3-test' => ['organization_id' => 3, 'account_number' => 'fop-hrushchenko', 'payments_key' => 'hrushchenko-secret'],
+            'salesdrive-fop2-test' => ['organization_id' => 2, 'account_number' => 'fop-popova'],
+            'salesdrive-fop3-test' => ['organization_id' => 3, 'account_number' => 'fop-hrushchenko'],
         ]]);
         $paymentId = 700;
         Http::fake(function ($request) use (&$paymentId) {
@@ -119,12 +119,12 @@ class SalesDriveSyncTest extends TestCase
         $service->syncPaid($hrushchenkoPayment);
 
         Http::assertSent(fn ($request): bool => $request->url() === 'https://lamari.salesdrive.me/api/payment/'
-            && $request->header('X-Api-Key')[0] === 'popova-secret'
+            && $request->header('X-Api-Key')[0] === 'payments-secret'
             && $request['organizationId'] === 2
             && $request['accountNumber'] === 'fop-popova'
             && $request['orderId'] === 401);
         Http::assertSent(fn ($request): bool => $request->url() === 'https://lamari.salesdrive.me/api/payment/'
-            && $request->header('X-Api-Key')[0] === 'hrushchenko-secret'
+            && $request->header('X-Api-Key')[0] === 'payments-secret'
             && $request['organizationId'] === 3
             && $request['accountNumber'] === 'fop-hrushchenko'
             && $request['orderId'] === 402);
@@ -133,7 +133,7 @@ class SalesDriveSyncTest extends TestCase
     public function test_does_not_fall_back_to_another_fop_when_merchant_mapping_is_missing(): void
     {
         config(['services.salesdrive.payment_accounts' => [
-            'salesdrive-fop2-test' => ['organization_id' => 2, 'account_number' => 'fop-popova', 'payments_key' => 'popova-secret'],
+            'salesdrive-fop2-test' => ['organization_id' => 2, 'account_number' => 'fop-popova'],
         ]]);
         $this->fakeSalesDrive();
         [$order, $payment] = $this->records('salesdrive-unmapped-test', 'LAM-SD-UNMAPPED');

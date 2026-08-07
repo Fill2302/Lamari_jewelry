@@ -88,7 +88,7 @@ class SalesDriveSyncService
             'paymentDate' => now()->toDateTimeString(),
         ]);
         $paymentAccount = $this->paymentAccount($order->merchantAccount->code);
-        if ($paymentAccount['organization_id'] < 1 || blank($paymentAccount['account_number']) || blank($paymentAccount['payments_key'])) {
+        if ($paymentAccount['organization_id'] < 1 || blank($paymentAccount['account_number'])) {
             throw new RuntimeException("SalesDrive payment account is not configured for merchant {$order->merchantAccount->code}.");
         }
         $paymentId = $this->client->addPayment([
@@ -102,7 +102,7 @@ class SalesDriveSyncService
             'orderId' => $order->salesdrive_order_id,
             'orderExternalId' => $order->number,
             'autoAttachToOrderType' => 'order_id',
-        ], $paymentAccount['payments_key']);
+        ]);
         $payment->update(['salesdrive_payment_id' => $paymentId]);
         $order->update(['salesdrive_paid_at' => now(), 'salesdrive_sync_error' => null]);
     }
@@ -115,18 +115,16 @@ class SalesDriveSyncService
             return [
                 'organization_id' => (int) ($account['organization_id'] ?? 0),
                 'account_number' => (string) ($account['account_number'] ?? ''),
-                'payments_key' => (string) ($account['payments_key'] ?? ''),
             ];
         }
 
         if (is_array($accounts) && $accounts !== []) {
-            return ['organization_id' => 0, 'account_number' => '', 'payments_key' => ''];
+            return ['organization_id' => 0, 'account_number' => ''];
         }
 
         return [
             'organization_id' => (int) config('services.salesdrive.organization_id'),
             'account_number' => (string) config('services.salesdrive.account_number'),
-            'payments_key' => (string) config('services.salesdrive.payments_key'),
         ];
     }
 
