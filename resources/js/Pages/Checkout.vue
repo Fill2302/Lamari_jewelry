@@ -285,6 +285,10 @@ function submit() {
               <input v-model="form.payment_method" type="radio" value="cash_on_delivery" />
               <span><strong>Оплата при отриманні</strong><small>Післяплата у відділенні Нової пошти</small></span>
             </label>
+            <label :class="{ selected: form.payment_method === 'wayforpay_deposit', disabled: amountDue <= 15000 }">
+              <input v-model="form.payment_method" type="radio" value="wayforpay_deposit" :disabled="amountDue <= 15000" />
+              <span><strong>Передплата 150 грн</strong><small>150 грн зараз, решта — післяплатою у Новій пошті</small></span>
+            </label>
             <small v-if="form.errors.payment_method">{{ form.errors.payment_method }}</small>
           </fieldset>
         </div>
@@ -316,8 +320,12 @@ function submit() {
             <b>− {{ (promo.discount / 100).toLocaleString('uk-UA') }} ₴</b>
           </div>
           <div class="checkout-amount-due">
-            <span>До сплати</span>
-            <b>{{ (amountDue / 100).toLocaleString('uk-UA') }} ₴</b>
+            <span>{{ form.payment_method === 'wayforpay_deposit' ? 'Передплата зараз' : 'До сплати' }}</span>
+            <b>{{ ((form.payment_method === 'wayforpay_deposit' ? 15000 : amountDue) / 100).toLocaleString('uk-UA') }} ₴</b>
+          </div>
+          <div v-if="form.payment_method === 'wayforpay_deposit'" class="checkout-summary-row">
+            <span>Залишок при отриманні</span>
+            <b>{{ ((amountDue - 15000) / 100).toLocaleString('uk-UA') }} ₴</b>
           </div>
           <p>Вартість доставки буде розрахована під час підтвердження замовлення.</p>
           <button class="button" :disabled="form.processing">

@@ -125,6 +125,30 @@ class CheckoutTest extends TestCase
         $this->assertSame(route('orders.thank-you', $order), $checkout['checkout_url']);
     }
 
+    public function test_wayforpay_deposit_charges_150_and_keeps_remaining_cod_amount(): void
+    {
+        config([
+            'services.payments.wayforpay_domain' => 'test.lamari.jewelry',
+            'services.payments.wayforpay_merchants' => [
+                'default' => ['account' => 'merchant-fop-2', 'secret' => 'secret'],
+            ],
+        ]);
+        $variant = $this->variant(price: 100000);
+
+        [$order, $checkout] = $this->app->make(CheckoutService::class)->create(
+            ['customer_name' => 'Filip', 'email' => 'f@example.com', 'phone' => '+380000000000', 'shipping_address' => ['city' => 'Kyiv']],
+            [['variant' => $variant, 'quantity' => 1]],
+            'wayforpay_deposit',
+        );
+
+        $this->assertSame('wayforpay_deposit', $order->payment_method);
+        $this->assertSame(0, $order->prepaid_amount);
+        $this->assertSame(85000, $order->cod_amount);
+        $this->assertSame(15000, $order->payments->first()->amount);
+        $this->assertSame('wayforpay', $order->payments->first()->provider);
+        $this->assertStringContainsString('/payments/wayforpay/', $checkout['checkout_url']);
+    }
+
     public function test_unpaid_checkout_does_not_create_a_salesdrive_order(): void
     {
         config([

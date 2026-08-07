@@ -16,6 +16,9 @@ return [
             'mono' => env('MONO_FOP2_WEBHOOK_PUBLIC_KEY', env('MONO_WEBHOOK_PUBLIC_KEY')),
             'privat' => env('MONO_FOP3_WEBHOOK_PUBLIC_KEY'),
         ],
+        'wayforpay_url' => env('WAYFORPAY_URL', 'https://secure.wayforpay.com/pay'),
+        'wayforpay_domain' => env('WAYFORPAY_DOMAIN', 'test.lamari.jewelry'),
+        'wayforpay_merchants' => json_decode((string) env('WAYFORPAY_MERCHANTS_JSON', '{}'), true) ?: [],
     ],
 
     'salesdrive' => [
@@ -26,6 +29,7 @@ return [
         'payments_key' => env('SALESDRIVE_PAYMENTS_API_KEY'),
         'pending_status' => env('SALESDRIVE_PENDING_STATUS', 'Оплата'),
         'paid_status' => env('SALESDRIVE_PAID_STATUS', 'Підтверджено'),
+        'deposit_status' => env('SALESDRIVE_DEPOSIT_STATUS', 'Підтверджено'),
         'payment_method' => env('SALESDRIVE_PAYMENT_METHOD', 'Оплата карткою на сайті'),
         'delivery_method' => env('SALESDRIVE_DELIVERY_METHOD', 'Нова Пошта'),
         'organization_id' => env('SALESDRIVE_ORGANIZATION_ID'),

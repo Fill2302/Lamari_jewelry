@@ -52,7 +52,7 @@ class SalesDriveSyncService
                     'city' => $shipping['city'] ?? '',
                     'WarehouseNumber' => $this->warehouseNumber((string) ($shipping['address'] ?? '')),
                 ],
-                'comment' => 'Замовлення з '.config('services.salesdrive.source').'. Передоплата через Mono.',
+                'comment' => 'Замовлення з '.config('services.salesdrive.source').'. '.($order->payment_method === 'wayforpay_deposit' ? 'Передплата 150 грн через WayForPay, залишок післяплатою.' : 'Передоплата онлайн.'),
                 'externalId' => $order->number,
                 'sajt' => (string) config('services.salesdrive.source'),
                 'utmSourceFull' => $attribution['landing_url'] ?? null,
@@ -83,7 +83,7 @@ class SalesDriveSyncService
         $order = $payment->order;
         $this->syncPending($order);
         $this->client->updateOrder($order->salesdrive_order_id, [
-            'statusId' => $this->statusId((string) config('services.salesdrive.paid_status')),
+            'statusId' => $this->statusId((string) config($order->payment_method === 'wayforpay_deposit' ? 'services.salesdrive.deposit_status' : 'services.salesdrive.paid_status')),
             'paymentDate' => now()->toDateTimeString(),
         ]);
         if ((int) config('services.salesdrive.organization_id') < 1 || blank(config('services.salesdrive.account_number'))) {
@@ -95,8 +95,8 @@ class SalesDriveSyncService
             'timezone' => config('app.timezone'),
             'accountNumber' => (string) config('services.salesdrive.account_number'),
             'sum' => $payment->amount / 100,
-            'description' => 'Передоплата Mono за '.$order->number,
-            'uniqueId' => 'lamari-mono-'.$payment->idempotency_key,
+            'description' => ($payment->provider === 'wayforpay' ? 'Передплата WayForPay за ' : 'Передоплата Mono за ').$order->number,
+            'uniqueId' => 'lamari-'.$payment->provider.'-'.$payment->idempotency_key,
             'orderId' => $order->salesdrive_order_id,
             'orderExternalId' => $order->number,
             'autoAttachToOrderType' => 'order_id',

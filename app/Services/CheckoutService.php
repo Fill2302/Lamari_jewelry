@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentRoutingSetting;
 use App\Models\ProductVariant;
+use App\Payments\WayForPayPaymentProvider;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,6 +18,7 @@ class CheckoutService
     public function __construct(
         private MerchantSelector $selector,
         private PaymentProvider $provider,
+        private WayForPayPaymentProvider $wayForPay,
         private TelegramOrderNotifier $telegram,
     ) {}
 
@@ -60,8 +62,12 @@ class CheckoutService
                 : ($destinations->contains('privat') ? 'privat' : ($destinations->contains('mono') ? 'mono' : 'unassigned'));
             $merchant = $this->selector->select($amountDue, $paymentDestination);
             $cashOnDelivery = $paymentMethod === 'cash_on_delivery';
+            $deposit = $paymentMethod === 'wayforpay_deposit';
+            if ($deposit && $amountDue <= 15000) {
+                throw new RuntimeException('Deposit payment requires an order total above 150 UAH.');
+            }
             $number = (string) DB::table('order_number_sequences')->insertGetId(['created_at' => now()]);
-            $order = Order::create([...$customer, 'number' => $number, 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'payment_method' => $paymentMethod, 'payment_destination' => $paymentDestination, 'status' => $cashOnDelivery ? 'confirmed' : 'pending_payment', 'payment_status' => $cashOnDelivery ? 'cash_on_delivery' : 'pending', 'promo_code_id' => $promo?->id, 'subtotal_amount' => $total, 'discount_amount' => $promoDiscount, 'total_amount' => $amountDue, 'currency' => 'UAH']);
+            $order = Order::create([...$customer, 'number' => $number, 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'payment_method' => $paymentMethod, 'payment_destination' => $paymentDestination, 'status' => $cashOnDelivery ? 'confirmed' : 'pending_payment', 'payment_status' => $cashOnDelivery ? 'cash_on_delivery' : 'pending', 'promo_code_id' => $promo?->id, 'subtotal_amount' => $total, 'discount_amount' => $promoDiscount, 'total_amount' => $amountDue, 'prepaid_amount' => 0, 'cod_amount' => $deposit ? $amountDue - 15000 : ($cashOnDelivery ? $amountDue : 0), 'currency' => 'UAH']);
             if ($promo) {
                 $promo->increment('used_count');
             }
@@ -74,7 +80,8 @@ class CheckoutService
                 return [$order, null];
             }
 
-            $payment = Payment::create(['order_id' => $order->id, 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'provider' => $this->provider->name(), 'amount' => $amountDue, 'currency' => 'UAH', 'idempotency_key' => (string) Str::uuid()]);
+            $provider = $deposit ? $this->wayForPay : $this->provider;
+            $payment = Payment::create(['order_id' => $order->id, 'merchant_account_id' => $merchant->id, 'legal_entity_id' => $merchant->legal_entity_id, 'provider' => $provider->name(), 'amount' => $deposit ? 15000 : $amountDue, 'currency' => 'UAH', 'idempotency_key' => (string) Str::uuid()]);
 
             return [$order, $payment];
         });
@@ -85,6 +92,8 @@ class CheckoutService
             return [$order, ['checkout_url' => route('orders.thank-you', $order)]];
         }
 
-        return [$order, $this->provider->createPayment($payment)];
+        $provider = $payment->provider === 'wayforpay' ? $this->wayForPay : $this->provider;
+
+        return [$order, $provider->createPayment($payment)];
     }
 }

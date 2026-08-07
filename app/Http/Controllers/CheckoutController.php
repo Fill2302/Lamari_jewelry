@@ -68,7 +68,7 @@ class CheckoutController extends Controller
                 'city_ref' => ['required', 'uuid'],
                 'warehouse' => 'required|string|max:255',
                 'warehouse_ref' => ['required', 'uuid'],
-                'payment_method' => ['required', 'in:online,cash_on_delivery'],
+                'payment_method' => ['required', 'in:online,cash_on_delivery,wayforpay_deposit'],
             ],
             ['phone.regex' => 'Введіть повний номер у форматі +38 0XX XXX XX XX.'],
         );

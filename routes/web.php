@@ -7,6 +7,7 @@ use App\Http\Controllers\MonoPaymentController;
 use App\Http\Controllers\NovaPoshtaController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\WayForPayPaymentController;
 use App\Http\Middleware\ProtectStaging;
 use App\Models\Order;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -189,6 +190,12 @@ Route::post('/payments/mono/webhook', [MonoPaymentController::class, 'webhook'])
     ->withoutMiddleware([PreventRequestForgery::class, ProtectStaging::class])
     ->middleware('throttle:120,1')
     ->name('payments.mono.webhook');
+Route::get('/payments/wayforpay/return/{payment}', [WayForPayPaymentController::class, 'return'])->name('payments.wayforpay.return');
+Route::post('/payments/wayforpay/webhook', [WayForPayPaymentController::class, 'webhook'])
+    ->withoutMiddleware([PreventRequestForgery::class, ProtectStaging::class])
+    ->middleware('throttle:120,1')
+    ->name('payments.wayforpay.webhook');
+Route::get('/payments/wayforpay/{payment}', [WayForPayPaymentController::class, 'checkout'])->name('payments.wayforpay.checkout');
 Route::get('/orders/{order}/thank-you', fn (Order $order) => Inertia::render('ThankYou', ['order' => $order]))->name('orders.thank-you');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap']);
 Route::get('/robots.txt', [SeoController::class, 'robots']);

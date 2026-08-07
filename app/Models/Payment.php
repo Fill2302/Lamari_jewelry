@@ -18,4 +18,9 @@ class Payment extends Model
     {
         return $this->belongsTo(Order::class);
     }
+
+    public function merchantAccount(): BelongsTo
+    {
+        return $this->belongsTo(MerchantAccount::class);
+    }
 }

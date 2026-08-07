@@ -19,15 +19,20 @@ class PaymentCallbackService
 
     public function handle(string $raw, ?string $signature): bool
     {
-        if (! $this->provider->verifySignature($raw, $signature)) {
+        return $this->handleWith($this->provider, $raw, $signature);
+    }
+
+    public function handleWith(PaymentProvider $provider, string $raw, ?string $signature): bool
+    {
+        if (! $provider->verifySignature($raw, $signature)) {
             throw new RuntimeException('Invalid callback signature.');
         }
 
-        $cb = $this->provider->parseCallback(json_decode($raw, true, flags: JSON_THROW_ON_ERROR));
+        $cb = $provider->parseCallback(json_decode($raw, true, flags: JSON_THROW_ON_ERROR));
 
         $processedPayment = null;
-        $processed = DB::transaction(function () use ($cb, &$processedPayment) {
-            $event = WebhookEvent::firstOrCreate(['provider' => $this->provider->name(), 'external_id' => $cb->externalId], ['event_type' => 'payment.updated', 'signature_valid' => true, 'payload' => $cb->payload]);
+        $processed = DB::transaction(function () use ($cb, $provider, &$processedPayment) {
+            $event = WebhookEvent::firstOrCreate(['provider' => $provider->name(), 'external_id' => $cb->externalId], ['event_type' => 'payment.updated', 'signature_valid' => true, 'payload' => $cb->payload]);
             if (! $event->wasRecentlyCreated || $event->processed_at) {
                 return false;
             }
@@ -50,7 +55,10 @@ class PaymentCallbackService
 
             $payment->update(['status' => $cb->status, 'payload' => $cb->payload]);
             if ($cb->status === 'paid') {
-                $payment->order()->update(['payment_status' => 'paid', 'status' => 'confirmed']);
+                $orderUpdate = $payment->order->payment_method === 'wayforpay_deposit'
+                    ? ['payment_status' => 'deposit_paid', 'status' => 'confirmed', 'prepaid_amount' => $payment->amount, 'cod_amount' => max(0, $payment->order->total_amount - $payment->amount)]
+                    : ['payment_status' => 'paid', 'status' => 'confirmed'];
+                $payment->order()->update($orderUpdate);
                 $payment->refresh()->load('order.items');
                 $processedPayment = $payment;
             }

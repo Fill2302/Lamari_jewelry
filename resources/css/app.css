@@ -2150,6 +2150,10 @@ nav {
     border-color: #392f2a;
     box-shadow: 0 0 0 1px #392f2a;
 }
+.checkout-payment-methods > label.disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
 .checkout-payment-methods input {
     width: 18px;
     height: 18px;

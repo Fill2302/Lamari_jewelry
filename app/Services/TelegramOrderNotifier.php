@@ -25,9 +25,10 @@ class TelegramOrderNotifier
     {
         $order = $payment->order;
         $this->safelySend(implode("\n", [
-            '✅ <b>Оплачено</b>',
+            $order->payment_method === 'wayforpay_deposit' ? '✅ <b>Передплату отримано</b>' : '✅ <b>Оплачено</b>',
             '<b>Замовлення:</b> '.$this->escape($order->number),
             '<b>Сума:</b> '.$this->money($payment->amount),
+            ...($order->payment_method === 'wayforpay_deposit' ? ['<b>Залишок післяплати:</b> '.$this->money(max(0, $order->total_amount - $payment->amount))] : []),
             '<b>Джерело:</b> '.$this->escape((string) config('services.telegram_orders.source')),
         ]));
     }
@@ -57,7 +58,11 @@ class TelegramOrderNotifier
             '<b>Email:</b> '.$this->escape($order->email),
             '<b>Телефон:</b> '.$this->escape($order->phone),
             '<b>Спосіб доставки:</b> Нова Пошта',
-            '<b>Спосіб оплати:</b> '.($order->payment_method === 'cash_on_delivery' ? 'Оплата при отриманні' : 'Оплата карткою на сайті'),
+            '<b>Спосіб оплати:</b> '.match ($order->payment_method) {
+                'cash_on_delivery' => 'Оплата при отриманні',
+                'wayforpay_deposit' => 'Передплата 150 грн + післяплата',
+                default => 'Оплата карткою на сайті',
+            },
             '<b>Місто:</b> '.$this->escape((string) ($shipping['city'] ?? '—')),
             '<b>Відділення/поштомат:</b> '.$this->escape((string) ($shipping['address'] ?? '—')),
             '<b>Примітка:</b> —',
