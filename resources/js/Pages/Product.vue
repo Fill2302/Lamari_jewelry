@@ -3,6 +3,8 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { Head, useForm, Link, router } from '@inertiajs/vue3';
 import StoreLayout from '../Layouts/StoreLayout.vue';
 const p = defineProps<{ product: any, recommendedProducts: any[], productCardSetting?: any }>();
+const monoInstallmentsIcon = '/images/payment/mono-installments.svg';
+const privatInstallmentsIcon = '/images/payment/privat-installments.svg';
 const selected = ref(p.product.variants[0]?.id);
 const showVariantSelector = computed(() => !(
   p.product.variants.length === 1
@@ -23,6 +25,7 @@ const gallery = ref<HTMLElement | null>(null);
 const buyButton = ref<HTMLElement | null>(null);
 const showStickyBuy = ref(false);
 const sizeGuideOpen = ref(false);
+const installmentInfoOpen = ref<'mono' | 'privat' | null>(null);
 const favorites = ref<number[]>([]);
 const isFavorite = computed(() => favorites.value.includes(p.product.id));
 const toggleFavorite = (productId = p.product.id) => {
@@ -167,6 +170,7 @@ const displaySku = (variant:any) => /^\d+\s*см$/iu.test(variant?.name || '')
 const productSku = computed(() => displaySku(p.product.variants[0]));
 const compareAtPrice = computed(() => Number(selectedVariant.value?.discount_percentage ? selectedVariant.value.original_price_amount : p.product.compare_at_price_amount || 0));
 const currentPrice = computed(() => Number(selectedVariant.value?.effective_price_amount ?? selectedVariant.value?.price_amount ?? 0));
+const monthlyInstallment = computed(() => Math.round(currentPrice.value / 400));
 const discountLabel = computed(() => {
   if (!compareAtPrice.value || !currentPrice.value || compareAtPrice.value <= currentPrice.value) return '';
   const catalogLabel = p.product.catalog_badges?.find((badge: any) => badge.type === 'sale')?.label;
@@ -309,6 +313,13 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
           <del v-if="compareAtPrice">{{ (compareAtPrice / 100).toLocaleString('uk-UA') }} ₴</del>
           <span>{{ (currentPrice / 100).toLocaleString('uk-UA') }} ₴</span>
         </p>
+        <div class="installment-block">
+          <span>Від {{ monthlyInstallment.toLocaleString('uk-UA') }} грн / міс</span>
+          <div class="installment-banks">
+            <button type="button" aria-label="Умови Покупки частинами monobank" @click="installmentInfoOpen = 'mono'"><img :src="monoInstallmentsIcon" alt="monobank — Покупка частинами"></button>
+            <button type="button" aria-label="Умови Оплати частинами ПриватБанк" @click="installmentInfoOpen = 'privat'"><img :src="privatInstallmentsIcon" alt="ПриватБанк — Оплата частинами"></button>
+          </div>
+        </div>
         <div v-if="showSizeGuide" class="product-size-guide">
           <p v-if="sizeGuideLabel">{{ sizeGuideLabel }}</p>
           <button type="button" @click="sizeGuideOpen = true">Як визначити розмір</button>
@@ -355,6 +366,26 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
           <h2 id="size-guide-title">{{ sizeGuideContent.title }}</h2>
           <p>{{ sizeGuideContent.text }}</p>
           <img :src="sizeGuideContent.image" :alt="sizeGuideContent.alt" loading="lazy">
+        </section>
+      </div>
+    </Teleport>
+    <Teleport to="body">
+      <div v-if="installmentInfoOpen" class="installment-overlay" role="presentation" tabindex="-1" autofocus @click.self="installmentInfoOpen = null" @keydown.esc="installmentInfoOpen = null">
+        <section class="installment-modal" role="dialog" aria-modal="true" aria-labelledby="installment-title">
+          <button type="button" class="installment-close" aria-label="Закрити" @click="installmentInfoOpen = null">×</button>
+          <h2 id="installment-title">
+            <img :src="installmentInfoOpen === 'mono' ? monoInstallmentsIcon : privatInstallmentsIcon" alt="">
+            {{ installmentInfoOpen === 'mono' ? 'Покупка частинами monobank | Universal Bank' : 'Оплата частинами від ПриватБанк' }}
+          </h2>
+          <div v-if="installmentInfoOpen === 'mono'">
+            <p>Покупка частинами — це зручний спосіб купувати товари, сплачуючи за них поступово. Сума вашої покупки ділиться на 4 рівні частини, які щомісячно списуються з рахунку вашої картки.</p>
+            <p>Покупка частинами дає можливість розділити суму покупки на 4 платежі без комісії та переплат. Для оформлення потрібні картка monobank і доступний ліміт.</p>
+          </div>
+          <div v-else>
+            <p>Оплата частинами — це зручний спосіб купувати товари, сплачуючи за них поступово. Сума вашої покупки ділиться на 4 рівні частини, які щомісячно списуються з рахунку вашої картки.</p>
+            <p>Оплата частинами дає можливість розділити суму покупки на 4 платежі без комісії та переплат. Для оформлення потрібні картка «Універсальна» ПриватБанку і доступний ліміт.</p>
+          </div>
+          <p>Перший платіж списується в момент купівлі, інші — щомісяця в дату оформлення.</p>
         </section>
       </div>
     </Teleport>
