@@ -2,20 +2,21 @@
 
 namespace App\Filament\Resources\Products\Tables;
 
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Actions\BulkActionGroup;
+use App\Models\Category;
 use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\TextInputColumn;
-use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Forms\Components\Select;
-use Illuminate\Support\Collection;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class ProductsTable
 {
@@ -83,9 +84,36 @@ class ProductsTable
             ->defaultSort('catalog_position')
             ->paginationPageOptions([5, 10, 25, 50, 100])
             ->filters([
-                SelectFilter::make('category_id')
-                    ->label('Категорія / підкатегорія')
-                    ->relationship('category', 'name')
+                SelectFilter::make('parent_category_id')
+                    ->label('Категорія')
+                    ->options(fn (): array => Category::query()
+                        ->whereNull('parent_id')
+                        ->orderBy('position')
+                        ->orderBy('name')
+                        ->pluck('name', 'id')
+                        ->all())
+                    ->query(fn (Builder $query, array $data): Builder => $query
+                        ->when($data['value'] ?? null, fn (Builder $query, int|string $categoryId): Builder => $query
+                            ->whereHas('category', fn (Builder $category): Builder => $category
+                                ->whereKey($categoryId)
+                                ->orWhere('parent_id', $categoryId))))
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('subcategory_id')
+                    ->label('Підкатегорія')
+                    ->options(fn (): array => Category::query()
+                        ->whereNotNull('parent_id')
+                        ->with('parent:id,name')
+                        ->orderBy('position')
+                        ->orderBy('name')
+                        ->get()
+                        ->mapWithKeys(fn (Category $category): array => [
+                            $category->id => "{$category->parent?->name} — {$category->name}",
+                        ])
+                        ->all())
+                    ->query(fn (Builder $query, array $data): Builder => $query
+                        ->when($data['value'] ?? null, fn (Builder $query, int|string $categoryId): Builder => $query
+                            ->where('category_id', $categoryId)))
                     ->searchable()
                     ->preload(),
                 SelectFilter::make('payment_destination')
