@@ -18,7 +18,19 @@ return [
         ],
         'wayforpay_url' => env('WAYFORPAY_URL', 'https://secure.wayforpay.com/pay'),
         'wayforpay_domain' => env('WAYFORPAY_DOMAIN', 'test.lamari.jewelry'),
-        'wayforpay_merchants' => json_decode((string) env('WAYFORPAY_MERCHANTS_JSON', '{}'), true) ?: [],
+        'wayforpay_merchants' => (static function (): array {
+            $encoded = (string) env('WAYFORPAY_MERCHANTS_B64', '');
+            if ($encoded !== '') {
+                $decoded = base64_decode($encoded, true);
+                $merchants = $decoded === false ? null : json_decode($decoded, true);
+
+                return is_array($merchants) ? $merchants : [];
+            }
+
+            $merchants = json_decode((string) env('WAYFORPAY_MERCHANTS_JSON', '{}'), true);
+
+            return is_array($merchants) ? $merchants : [];
+        })(),
     ],
 
     'salesdrive' => [
