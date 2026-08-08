@@ -61,7 +61,7 @@ const faqs = computed(() => (props.homepage?.faq_items || []).map((item:any) => 
   <Head>
     <title>Авторські прикраси ручної роботи</title>
     <meta name="description" content="Lamari Jewelry — авторські прикраси ручної роботи: кольє, чокери, сережки, браслети та каблучки." />
-    <link rel="canonical" href="https://lamari.jewelry" />
+    <link rel="canonical" href="http://localhost" />
     <meta property="og:title" content="Lamari Jewelry" />
   </Head>
   <StoreLayout home-overlay>
