@@ -255,7 +255,7 @@ const schema = { '@context': 'https://schema.org', '@type': 'Product', name: p.p
   <Head>
     <title>{{ product.seo_title || product.name }}</title>
     <meta name="description" :content="product.seo_description || product.description" />
-    <link rel="canonical" :href="`http://localhost/products/${product.slug}`" />
+    <link rel="canonical" :href="`https://lamari.jewelry/products/${product.slug}`" />
     <meta property="og:type" content="product" /><meta property="og:title" :content="product.name" />
     <component is="script" type="application/ld+json">{{ JSON.stringify(schema) }}</component>
   </Head>
